@@ -1,3 +1,4 @@
+export { YollaVoice, type YollaVoiceOptions } from "./client.js";
 export {
   AuthenticationError,
   ConflictError,
@@ -14,6 +15,9 @@ export {
   type WebhookVerificationReason,
   YollaVoiceError,
 } from "./errors.js";
+export type { RequestOptions } from "./http.js";
+export { CallPage, CallPagePromise } from "./pagination.js";
+export type { CreateCallOptions, CreateCallResult } from "./resources/calls.js";
 export type {
   Balance,
   Call,
