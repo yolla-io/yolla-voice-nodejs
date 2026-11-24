@@ -1,0 +1,1168 @@
+# Reseller API contract, source version 0.1.0-draft, synced 2026-11-24. Do not edit; run npm run sync-contract.
+openapi: 3.1.0
+info:
+  title: Yolla Voice Reseller API
+  version: 0.1.0-draft
+servers:
+  - url: https://api.example.com
+tags:
+  - name: calls
+  - name: account
+  - name: client
+paths:
+  /v1/calls:
+    post:
+      tags:
+        - calls
+      operationId: createCall
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCallRequest"
+            example:
+              to: "4915112345678"
+              from: "442071234567"
+              externalUserId: app-user-8812
+              customParams:
+                orderId: A-10042
+              maxDuration: 1800
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCallResponse"
+          description: Response
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCallResponse"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: createCall
+    get:
+      tags:
+        - calls
+      operationId: listCalls
+      security:
+        - apiKey: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/CallStatus"
+        - name: externalUserId
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Call"
+                  nextCursor:
+                    type:
+                      - string
+                      - "null"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+      summary: listCalls
+  /v1/calls/{callId}:
+    get:
+      tags:
+        - calls
+      operationId: getCall
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+      summary: getCall
+  /v1/calls/{callId}/end:
+    post:
+      tags:
+        - calls
+      operationId: endCall
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: endCall
+  /v1/calls/{callId}/hold:
+    post:
+      tags:
+        - calls
+      operationId: holdCall
+      x-mvp: maybe
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: holdCall
+  /v1/calls/{callId}/unhold:
+    post:
+      tags:
+        - calls
+      operationId: unholdCall
+      x-mvp: maybe
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Call"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: unholdCall
+  /v1/balance:
+    get:
+      tags:
+        - account
+      operationId: getBalance
+      security:
+        - apiKey: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Balance"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: getBalance
+  /v1/pricing/numbers/{number}:
+    get:
+      tags:
+        - account
+      operationId: getNumberPrice
+      security:
+        - apiKey: []
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberPrice"
+          description: Response
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: getNumberPrice
+  /v1/gateway:
+    post:
+      tags:
+        - client
+      operationId: getGateway
+      security:
+        - callToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GatewayRequest"
+      responses:
+        "200":
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayResponse"
+          description: Response
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Error"
+        "426":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: getGateway
+  /v1/calls/{callId}/stats/interval:
+    post:
+      tags:
+        - client
+      operationId: postIntervalStats
+      security:
+        - callToken: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntervalStats"
+      responses:
+        "204":
+          description: Response
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: postIntervalStats
+  /v1/calls/{callId}/stats:
+    post:
+      tags:
+        - client
+      operationId: postFinalStats
+      security:
+        - callToken: []
+      parameters:
+        - $ref: "#/components/parameters/CallId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinalStats"
+      responses:
+        "204":
+          description: Response
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: postFinalStats
+  /v1/logs:
+    post:
+      tags:
+        - client
+      operationId: postLogs
+      security:
+        - callToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - deviceId
+                - logs
+              properties:
+                deviceId:
+                  type: string
+                  pattern: ^urn:uuid:[0-9a-f-]{36}$
+                logs:
+                  type: string
+                  format: binary
+            encoding:
+              logs:
+                contentType: application/zip
+      responses:
+        "204":
+          description: Response
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      summary: postLogs
+webhooks:
+  call.initiated:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.answered:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.held:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.unheld:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.hold_failed:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.completed:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.expired:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.quality:
+    $ref: "#/components/pathItems/QualityWebhook"
+  balance.low:
+    $ref: "#/components/pathItems/BalanceWebhook"
+  webhook.test:
+    $ref: "#/components/pathItems/TestWebhook"
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+    callToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CallId:
+      name: callId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^call_[0-9A-HJKMNP-TV-Z]{26}$
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+    WebhookTimestamp:
+      name: X-Voice-Timestamp
+      in: header
+      required: true
+      schema:
+        type: integer
+    WebhookSignature:
+      name: X-Voice-Signature
+      in: header
+      required: true
+      schema:
+        type: string
+    WebhookDeliveryId:
+      name: X-Voice-Delivery-Id
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    Error:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Response
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+      description: Response
+  pathItems:
+    CallWebhook:
+      post:
+        security: []
+        parameters:
+          - $ref: "#/components/parameters/WebhookTimestamp"
+          - $ref: "#/components/parameters/WebhookSignature"
+          - $ref: "#/components/parameters/WebhookDeliveryId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CallEvent"
+        responses:
+          2XX:
+            description: Response
+        summary: Webhook delivery
+    QualityWebhook:
+      post:
+        security: []
+        parameters:
+          - $ref: "#/components/parameters/WebhookTimestamp"
+          - $ref: "#/components/parameters/WebhookSignature"
+          - $ref: "#/components/parameters/WebhookDeliveryId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityEvent"
+        responses:
+          2XX:
+            description: Response
+        summary: Webhook delivery
+    BalanceWebhook:
+      post:
+        security: []
+        parameters:
+          - $ref: "#/components/parameters/WebhookTimestamp"
+          - $ref: "#/components/parameters/WebhookSignature"
+          - $ref: "#/components/parameters/WebhookDeliveryId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceEvent"
+        responses:
+          2XX:
+            description: Response
+        summary: Webhook delivery
+    TestWebhook:
+      post:
+        security: []
+        parameters:
+          - $ref: "#/components/parameters/WebhookTimestamp"
+          - $ref: "#/components/parameters/WebhookSignature"
+          - $ref: "#/components/parameters/WebhookDeliveryId"
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestEvent"
+        responses:
+          2XX:
+            description: Response
+        summary: Webhook delivery
+  schemas:
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          pattern: ^-?[0-9]+(\.[0-9]{1,6})?$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+    Rate:
+      type: object
+      required:
+        - perMinute
+        - firstIncrementSec
+        - nextIncrementSec
+        - prefix
+      properties:
+        perMinute:
+          $ref: "#/components/schemas/Money"
+        firstIncrementSec:
+          type: integer
+        nextIncrementSec:
+          type: integer
+        prefix:
+          type: string
+    E164:
+      type: string
+      pattern: ^[1-9][0-9]{6,14}$
+    Destination:
+      type: string
+      pattern: ^[1-9][0-9]{3,14}$
+    CallStatus:
+      type: string
+      enum:
+        - created
+        - initiated
+        - answered
+        - completed
+        - failed
+        - canceled
+        - expired
+    EndReason:
+      type: string
+      enum:
+        - caller_hangup
+        - callee_hangup
+        - caller_canceled
+        - intent_canceled
+        - media_timeout
+        - connection_lost
+        - max_duration
+        - balance_exhausted
+        - server_terminated
+        - busy
+        - no_answer
+        - rejected
+        - ring_timeout
+        - carrier_failed
+        - platform_rejected
+        - unknown
+    CreateCallRequest:
+      type: object
+      required:
+        - to
+        - externalUserId
+      additionalProperties: false
+      properties:
+        to:
+          $ref: "#/components/schemas/Destination"
+        from:
+          $ref: "#/components/schemas/E164"
+        externalUserId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[^\x00-\x1F\x7F-\x9F]+$
+        customParams:
+          type: object
+          maxProperties: 10
+          additionalProperties:
+            type: string
+            maxLength: 256
+        maxDuration:
+          type: integer
+          minimum: 1
+          maximum: 14400
+          default: 14400
+    CreateCallResponse:
+      type: object
+      required:
+        - id
+        - status
+        - to
+        - from
+        - maxDuration
+        - callToken
+        - expiresAt
+        - createdAt
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          const: created
+        to:
+          $ref: "#/components/schemas/Destination"
+        from:
+          $ref: "#/components/schemas/E164"
+        rate:
+          $ref: "#/components/schemas/Rate"
+        maxDuration:
+          type: integer
+        callToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    Call:
+      type: object
+      required:
+        - id
+        - status
+        - to
+        - from
+        - externalUserId
+        - createdAt
+        - expiresAt
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/CallStatus"
+        onHold:
+          type: boolean
+        to:
+          $ref: "#/components/schemas/Destination"
+        from:
+          $ref: "#/components/schemas/E164"
+        externalUserId:
+          type: string
+        customParams:
+          type: object
+          additionalProperties:
+            type: string
+        maxDuration:
+          type: integer
+        rate:
+          $ref: "#/components/schemas/Rate"
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        initiatedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        answeredAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        endedAt:
+          type:
+            - string
+            - "null"
+          format: date-time
+        duration:
+          type:
+            - integer
+            - "null"
+        billedDuration:
+          type:
+            - integer
+            - "null"
+        price:
+          oneOf:
+            - $ref: "#/components/schemas/Money"
+            - type: "null"
+        endReason:
+          oneOf:
+            - $ref: "#/components/schemas/EndReason"
+            - type: "null"
+        sipCode:
+          type:
+            - integer
+            - "null"
+        errorCode:
+          type:
+            - string
+            - "null"
+        quality:
+          oneOf:
+            - $ref: "#/components/schemas/QualitySummary"
+            - type: "null"
+    QualitySummary:
+      type: object
+      properties:
+        mosEstimate:
+          type: number
+        mosMin:
+          type: number
+        rttMsAvg:
+          type: number
+        jitterMsAvg:
+          type: number
+        packetLossPct:
+          type: number
+        iceCandidateType:
+          type: string
+          enum:
+            - host
+            - srflx
+            - relay
+        network:
+          type: string
+          enum:
+            - wifi
+            - cellular
+            - wired
+            - other
+        warnings:
+          type: array
+          items:
+            type: string
+    Balance:
+      type: object
+      required:
+        - billingMode
+        - balance
+        - available
+      properties:
+        billingMode:
+          type: string
+          enum:
+            - prepaid
+            - postpaid
+        balance:
+          $ref: "#/components/schemas/Money"
+        creditLimit:
+          oneOf:
+            - $ref: "#/components/schemas/Money"
+            - type: "null"
+        available:
+          $ref: "#/components/schemas/Money"
+    NumberPrice:
+      type: object
+      required:
+        - number
+        - rate
+      properties:
+        number:
+          $ref: "#/components/schemas/Destination"
+        country:
+          type: string
+          pattern: ^[A-Z]{2}$
+        rate:
+          $ref: "#/components/schemas/Rate"
+    GatewayRequest:
+      type: object
+      required:
+        - deviceId
+        - device
+        - sdk
+      properties:
+        deviceId:
+          type: string
+          pattern: ^urn:uuid:[0-9a-f-]{36}$
+        device:
+          type: object
+          required:
+            - platform
+          properties:
+            platform:
+              type: string
+              minLength: 1
+            model:
+              type: string
+            systemName:
+              type: string
+            systemVersion:
+              type: string
+            language:
+              type: string
+            country:
+              type: string
+            timeZone:
+              type: string
+            jailbroken:
+              type: boolean
+            network:
+              type: string
+              enum:
+                - wifi
+                - cellular
+                - wired
+                - other
+        app:
+          type: object
+          properties:
+            bundleId:
+              type: string
+            version:
+              type: string
+            build:
+              type: string
+        sdk:
+          type: object
+          required:
+            - version
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+    GatewayResponse:
+      type: object
+      required:
+        - ttl
+        - sip
+        - iceServers
+        - sendLogsAfterCall
+      properties:
+        ttl:
+          type: integer
+        sendLogsAfterCall:
+          type: boolean
+        sip:
+          type: object
+          required:
+            - wssUrl
+            - domain
+            - uri
+          properties:
+            wssUrl:
+              type: string
+              format: uri
+            domain:
+              type: string
+            uri:
+              type: string
+            registrationRequired:
+              type: boolean
+              default: false
+        iceServers:
+          type: array
+          items:
+            type: object
+            required:
+              - urls
+            properties:
+              urls:
+                type: array
+                items:
+                  type: string
+              username:
+                type: string
+              credential:
+                type: string
+    IntervalStats:
+      type: object
+      required:
+        - deviceId
+        - seq
+        - at
+        - windowSec
+      properties:
+        deviceId:
+          type: string
+          pattern: ^urn:uuid:[0-9a-f-]{36}$
+        seq:
+          type: integer
+          minimum: 1
+        at:
+          type: string
+          format: date-time
+        windowSec:
+          type: integer
+          minimum: 1
+        network:
+          type: string
+        iceCandidateType:
+          type: string
+        audio:
+          type: object
+          properties:
+            rttMs:
+              type: number
+            jitterMs:
+              type: number
+            packetsSent:
+              type: integer
+            packetsReceived:
+              type: integer
+            packetsLost:
+              type: integer
+            packetLossPct:
+              type: number
+            bitrateKbps:
+              type: number
+            audioLevel:
+              type: number
+            mosEstimate:
+              type: number
+        warnings:
+          type: array
+          items:
+            type: string
+    FinalStats:
+      type: object
+      required:
+        - deviceId
+        - sipCallId
+        - duration
+        - endReason
+      additionalProperties: true
+      properties:
+        deviceId:
+          type: string
+          pattern: ^urn:uuid:[0-9a-f-]{36}$
+        sipCallId:
+          type: string
+          minLength: 1
+        duration:
+          type: integer
+          minimum: 0
+        endReason:
+          type: string
+          minLength: 1
+        sipCode:
+          type: integer
+        codec:
+          type: string
+        network:
+          type: string
+        iceCandidateType:
+          type: string
+        timing:
+          type: object
+          additionalProperties:
+            type: integer
+        events:
+          type: object
+          additionalProperties:
+            type: integer
+        audio:
+          type: object
+          additionalProperties:
+            type: number
+        intervalsSent:
+          type: integer
+        warnings:
+          type: array
+          items:
+            type: string
+        warningsTimeline:
+          type: array
+          items:
+            type: object
+            properties:
+              atSec:
+                type: integer
+              raised:
+                type: array
+                items:
+                  type: string
+              cleared:
+                type: array
+                items:
+                  type: string
+    ErrorBody:
+      type: object
+      required:
+        - code
+        - message
+        - requestId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        moreInfo:
+          type: string
+          format: uri
+        requestId:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorBody"
+    EventEnvelope:
+      type: object
+      required:
+        - id
+        - type
+        - seq
+        - createdAt
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        seq:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    CallEvent:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: object
+          required:
+            - type
+            - data
+          properties:
+            type:
+              type: string
+              enum:
+                - call.initiated
+                - call.answered
+                - call.held
+                - call.unheld
+                - call.hold_failed
+                - call.completed
+                - call.expired
+            data:
+              type: object
+              required:
+                - call
+              properties:
+                call:
+                  $ref: "#/components/schemas/Call"
+                hold:
+                  type: object
+                  properties:
+                    initiator:
+                      type: string
+                      enum:
+                        - client
+                        - server
+                    action:
+                      type: string
+                      enum:
+                        - hold
+                        - unhold
+                    leg:
+                      type: string
+                      enum:
+                        - caller
+                        - callee
+    QualityEvent:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: object
+          required:
+            - type
+            - data
+          properties:
+            type:
+              type: string
+              const: call.quality
+            data:
+              type: object
+              required:
+                - callId
+                - externalUserId
+                - quality
+              properties:
+                callId:
+                  type: string
+                externalUserId:
+                  type: string
+                quality:
+                  $ref: "#/components/schemas/QualitySummary"
+    TestEvent:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: object
+          required:
+            - type
+            - data
+          properties:
+            type:
+              type: string
+              const: webhook.test
+            seq:
+              type: integer
+              const: 0
+            data:
+              type: object
+              maxProperties: 0
+    BalanceEvent:
+      allOf:
+        - $ref: "#/components/schemas/EventEnvelope"
+        - type: object
+          required:
+            - type
+            - data
+          properties:
+            type:
+              type: string
+              const: balance.low
+            data:
+              $ref: "#/components/schemas/Balance"

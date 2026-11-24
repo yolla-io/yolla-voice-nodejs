@@ -48,7 +48,10 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "check": "npm run lint && npm run typecheck && npm run test",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "sync-contract": "node scripts/sync-contract.mjs",
+    "gen": "openapi-typescript openapi/reseller-api.yaml --default-non-nullable false -o src/generated/openapi.ts",
+    "check:gen": "node scripts/check-gen.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.9",
@@ -56,6 +59,7 @@
     "@types/node": "20.19.43",
     "openapi-typescript": "7.13.0",
     "typescript": "5.9.3",
-    "vitest": "4.1.12"
+    "vitest": "4.1.12",
+    "yaml": "^2.9.1"
   }
 }
