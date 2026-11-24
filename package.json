@@ -51,7 +51,8 @@
     "prepublishOnly": "npm run build",
     "sync-contract": "node scripts/sync-contract.mjs",
     "gen": "openapi-typescript openapi/reseller-api.yaml --default-non-nullable false -o src/generated/openapi.ts",
-    "check:gen": "node scripts/check-gen.mjs"
+    "check:gen": "node scripts/check-gen.mjs",
+    "check:public": "node scripts/check-public.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.9",

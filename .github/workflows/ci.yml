@@ -23,3 +23,5 @@ jobs:
       - run: npm run build
       - if: matrix.node == 24
         run: npm run check:gen
+      - if: matrix.node == 24
+        run: npm run check:public
