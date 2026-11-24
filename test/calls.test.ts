@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { ConflictError, YollaVoice } from "../src/index.js";
+import { describe, expect, it, vi } from "vitest";
+import { ConflictError, NotFoundError, YollaVoice } from "../src/index.js";
 import { apiError, jsonResponse, type MockReply, mockFetch } from "./helpers/mock-fetch.js";
 
 const call = { id: "c1", status: "answered" };
@@ -71,10 +71,21 @@ describe("calls.list", () => {
     expect(page.hasNextPage()).toBe(true);
   });
 
-  it("does not request until awaited or iterated", () => {
-    const { client, calls } = make();
-    client.calls.list();
-    expect(calls).toHaveLength(0);
+  it("returns a real promise that sends the first request at once", async () => {
+    const { client, calls } = make(jsonResponse(200, { items: [call], nextCursor: null }));
+    const list = client.calls.list();
+    expect(list).toBeInstanceOf(Promise);
+    expect(calls).toHaveLength(1);
+    const onFinally = vi.fn();
+    const page = await list.catch(() => undefined).finally(onFinally);
+    expect(page?.items).toEqual([call]);
+    expect(onFinally).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects through catch on an API error", async () => {
+    const { client } = make(apiError(404, "call_not_found", "Call not found", "req_1"));
+    const err = await client.calls.list().catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(NotFoundError);
   });
 
   it("iterates across pages with the original filters", async () => {

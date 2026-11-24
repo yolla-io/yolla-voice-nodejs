@@ -81,10 +81,11 @@ const price = await yolla.pricing.getNumberPrice("+14155550100"); // { number, c
 
 ## Pagination
 
-`calls.list` is awaitable (first page) and async-iterable (every call of every page).
+`calls.list` returns a promise of the first page that is also async-iterable over every call of
+every page. The first request starts when you call it; later pages are fetched as you iterate.
 
 ```ts
-// Every call, fetching pages lazily
+// Every call, fetching the next page only when needed
 for await (const call of yolla.calls.list({ status: "completed", limit: 100 })) {
   console.log(call.id, call.duration);
 }

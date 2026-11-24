@@ -1,4 +1,6 @@
 import { describe, expectTypeOf, it } from "vitest";
+import type { YollaVoice } from "../src/client.js";
+import type { CallPage } from "../src/pagination.js";
 import type {
   Call,
   CallList,
@@ -28,5 +30,13 @@ describe("types", () => {
 
   it("types ListCallsParams.limit as optional number", () => {
     expectTypeOf<ListCallsParams["limit"]>().toEqualTypeOf<number | undefined>();
+  });
+
+  it("types calls.list() as a promise of the first page and an iterable of calls", () => {
+    type List = ReturnType<YollaVoice["calls"]["list"]>;
+    expectTypeOf<List>().toMatchTypeOf<Promise<CallPage>>();
+    expectTypeOf<List>().toMatchTypeOf<AsyncIterable<Call>>();
+    expectTypeOf<List["catch"]>().toBeFunction();
+    expectTypeOf<List["finally"]>().toBeFunction();
   });
 });

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { HttpClient, RequestOptions } from "../http.js";
-import { CallPagePromise } from "../pagination.js";
+import { type CallPagePromise, listCallPages } from "../pagination.js";
 import type {
   Call,
   CallList,
@@ -50,7 +50,7 @@ export class Calls {
   }
 
   list(params: ListCallsParams = {}, opts: RequestOptions = {}): CallPagePromise {
-    return new CallPagePromise(
+    return listCallPages(
       async (cursor) =>
         (
           await this.#http.request<CallList>(
