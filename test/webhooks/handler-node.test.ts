@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import type { AddressInfo } from "node:net";
+import { type AddressInfo, connect } from "node:net";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createWebhookHandler } from "../../src/webhooks/handler.js";
 import { signWebhook } from "../../src/webhooks/sign.js";
@@ -107,6 +107,38 @@ describe("createWebhookHandler node adapter", () => {
     const res = await send(url, JSON.stringify({ ...completed, pad: "x".repeat(1024 * 1024 + 1) }));
     expect(res.status).toBe(413);
     expect(await res.text()).toBe('{"error":"payload too large"}');
+    expect(onUnhandled).not.toHaveBeenCalled();
+  });
+
+  it("answers 413 to a chunked body over 1 MiB without content-length", async () => {
+    const onUnhandled = vi.fn();
+    const handler = createWebhookHandler({ secret, on: {}, onUnhandled });
+    const { port } = new URL(await serve(handler.node));
+    // A raw socket: the server answers before the body ends, and Node's http client drops such
+    // an early response when its own write then fails.
+    const raw = await new Promise<string>((resolve) => {
+      const socket = connect(Number(port), "127.0.0.1");
+      let received = "";
+      socket.setEncoding("utf8");
+      socket.on("data", (c: string) => {
+        received += c;
+      });
+      socket.on("error", () => {});
+      socket.on("close", () => resolve(received));
+      socket.write("POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n");
+      const chunk = `10000\r\n${"x".repeat(0x10000)}\r\n`;
+      let sent = 0;
+      const write = () => {
+        while (sent < 40 && !socket.destroyed) {
+          sent++;
+          if (!socket.write(chunk)) return void socket.once("drain", write);
+        }
+        if (!socket.destroyed) socket.end("0\r\n\r\n");
+      };
+      write();
+    });
+    expect(raw).toMatch(/^HTTP\/1\.1 413 /);
+    expect(raw).toContain('{"error":"payload too large"}');
     expect(onUnhandled).not.toHaveBeenCalled();
   });
 });

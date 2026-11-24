@@ -88,6 +88,34 @@ describe("createWebhookHandler fetch adapter", () => {
     expect(onCompleted).not.toHaveBeenCalled();
   });
 
+  it("stops reading a streamed body without content-length at 1 MiB and answers 413", async () => {
+    const onUnhandled = vi.fn();
+    const handler = createWebhookHandler({ secret, on: {}, onUnhandled });
+    const chunk = new Uint8Array(64 * 1024).fill(120);
+    let pulled = 0;
+    let canceled = false;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (pulled >= 20 * 1024 * 1024) return controller.close();
+        pulled += chunk.byteLength;
+        controller.enqueue(chunk);
+      },
+      cancel() {
+        canceled = true;
+      },
+    });
+    const request = new Request("https://app.example.test/hook", {
+      method: "POST",
+      body,
+      duplex: "half",
+    } as RequestInit);
+    expect(request.headers.get("content-length")).toBeNull();
+    await expectJson(await handler.fetch(request), 413, { error: "payload too large" });
+    expect(pulled).toBeLessThan(2 * 1024 * 1024);
+    expect(canceled).toBe(true);
+    expect(onUnhandled).not.toHaveBeenCalled();
+  });
+
   it("handle() returns only the status", async () => {
     const handler = createWebhookHandler({ secret, on: {} });
     const signed = signWebhook(completed, { secret });
