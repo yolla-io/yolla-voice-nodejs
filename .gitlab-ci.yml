@@ -1,0 +1,11 @@
+stages:
+  - check
+
+check:
+  stage: check
+  image: $DOCKER_REGISTRY/library/node:24.15.0-alpine
+  script:
+    - npm ci
+    - npm run check
+    - npm run check:gen
+    - npm run build

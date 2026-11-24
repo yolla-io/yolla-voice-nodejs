@@ -1,0 +1,61 @@
+{
+  "name": "@yolla-io/yolla-voice-nodejs",
+  "version": "0.1.0",
+  "description": "Node.js server SDK for the Yolla Voice Reseller API",
+  "keywords": [
+    "yolla",
+    "voice",
+    "calls",
+    "voip",
+    "sdk",
+    "reseller"
+  ],
+  "homepage": "https://github.com/yolla-io/yolla-voice-nodejs#readme",
+  "bugs": {
+    "url": "https://github.com/yolla-io/yolla-voice-nodejs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yolla-io/yolla-voice-nodejs.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9",
+    "@changesets/cli": "3.0.3",
+    "@types/node": "20.19.43",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
