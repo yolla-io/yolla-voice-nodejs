@@ -1,3 +1,19 @@
+export {
+  AuthenticationError,
+  ConflictError,
+  ConnectionError,
+  type ErrorCode,
+  InsufficientBalanceError,
+  NotFoundError,
+  PermissionError,
+  RateLimitError,
+  ServerError,
+  TimeoutError,
+  ValidationError,
+  WebhookVerificationError,
+  type WebhookVerificationReason,
+  YollaVoiceError,
+} from "./errors.js";
 export type {
   Balance,
   Call,
