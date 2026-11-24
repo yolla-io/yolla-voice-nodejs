@@ -19,4 +19,4 @@ export type ErrorBody = Schemas["ErrorBody"];
 
 export type ListCallsParams = NonNullable<paths["/v1/calls"]["get"]["parameters"]["query"]>;
 
-export type CallList = { items: Call[]; nextCursor: string | null };
+export type CallList = paths["/v1/calls"]["get"]["responses"][200]["content"]["application/json"];

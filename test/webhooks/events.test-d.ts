@@ -1,10 +1,14 @@
 import { describe, expectTypeOf, it } from "vitest";
+import type { components } from "../../src/generated/openapi.js";
 import type { Balance, Call, QualitySummary } from "../../src/types.js";
 import type {
+  BalanceLowEvent,
+  CallQualityEvent,
   UnknownWebhookEvent,
   WebhookEvent,
   WebhookEventOf,
   WebhookEventType,
+  WebhookTestEvent,
 } from "../../src/webhooks/events.js";
 
 declare const event: WebhookEvent;
@@ -54,5 +58,16 @@ describe("webhook event types", () => {
     expectTypeOf<UnknownWebhookEvent["data"]>().toBeNever();
     expectTypeOf<UnknownWebhookEvent>().toMatchTypeOf<WebhookEvent>();
     expectTypeOf(event.type).toMatchTypeOf<string>();
+  });
+
+  it("takes the envelope and payloads from the contract", () => {
+    type Schemas = components["schemas"];
+    expectTypeOf<CallQualityEvent>().toEqualTypeOf<Schemas["QualityEvent"]>();
+    expectTypeOf<BalanceLowEvent>().toEqualTypeOf<Schemas["BalanceEvent"]>();
+    expectTypeOf<WebhookTestEvent>().toEqualTypeOf<Schemas["TestEvent"]>();
+    expectTypeOf<WebhookTestEvent["seq"]>().toEqualTypeOf<0>();
+    expectTypeOf<WebhookEventOf<"call.completed">["data"]>().toEqualTypeOf<
+      Schemas["CallEvent"]["data"]
+    >();
   });
 });

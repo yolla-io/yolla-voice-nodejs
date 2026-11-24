@@ -1,30 +1,23 @@
 import type { components } from "../generated/openapi.js";
 
 type Schemas = components["schemas"];
-
-interface Envelope<T extends string, D> {
-  id: string;
-  type: T;
-  seq: number;
-  createdAt: string;
-  data: D;
-}
+type EventEnvelope = Schemas["EventEnvelope"];
 
 export type CallWebhookEventType = Schemas["CallEvent"]["type"];
 
 /** Call lifecycle events: `call.initiated` … `call.expired`. */
 export type CallWebhookEvent = {
-  [T in CallWebhookEventType]: Envelope<T, Schemas["CallEvent"]["data"]>;
+  [T in CallWebhookEventType]: Omit<Schemas["CallEvent"], "type"> & { type: T };
 }[CallWebhookEventType];
 
 /** `call.quality`: the quality summary of a finished call. */
-export type CallQualityEvent = Envelope<"call.quality", Schemas["QualityEvent"]["data"]>;
+export type CallQualityEvent = Schemas["QualityEvent"];
 
 /** `balance.low`: the balance fell below the threshold. */
-export type BalanceLowEvent = Envelope<"balance.low", Schemas["BalanceEvent"]["data"]>;
+export type BalanceLowEvent = Schemas["BalanceEvent"];
 
 /** `webhook.test`: sent from the dashboard to check the endpoint; carries no call. */
-export type WebhookTestEvent = Envelope<"webhook.test", Schemas["TestEvent"]["data"]>;
+export type WebhookTestEvent = Schemas["TestEvent"];
 
 export type KnownWebhookEvent =
   | CallWebhookEvent
@@ -41,11 +34,7 @@ export type WebhookEventType = KnownWebhookEvent["type"];
  * narrow on a known type, so `never` is what keeps `event.data` exact after
  * `if (event.type === "call.completed")`. Read it with `event.data as unknown`.
  */
-export interface UnknownWebhookEvent {
-  id: string;
-  type: string;
-  seq: number;
-  createdAt: string;
+export interface UnknownWebhookEvent extends EventEnvelope {
   data: never;
 }
 

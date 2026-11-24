@@ -22,8 +22,8 @@ describe("types", () => {
     expectTypeOf<Call["status"]>().toEqualTypeOf<CallStatus>();
   });
 
-  it("types CallList.nextCursor as string or null", () => {
-    expectTypeOf<CallList["nextCursor"]>().toEqualTypeOf<string | null>();
+  it("types CallList.nextCursor as the contract does: optional string or null", () => {
+    expectTypeOf<CallList["nextCursor"]>().toEqualTypeOf<string | null | undefined>();
   });
 
   it("types ListCallsParams.limit as optional number", () => {
