@@ -60,3 +60,14 @@ describe("Webhooks", () => {
     expect(JSON.stringify(client.webhooks)).not.toContain(fixture.secret);
   });
 });
+
+describe("Webhooks.createHandler", () => {
+  it("falls back to the client secret", async () => {
+    const client = new YollaVoice({ ...clientOpts, webhookSecret: fixture.secret });
+    const onUnhandled = vi.fn();
+    const handler = client.webhooks.createHandler({ on: {}, onUnhandled });
+    const signed = client.webhooks.sign({ id: "e", type: "webhook.test", data: {} });
+    expect(await handler.handle(signed.body, signed.headers)).toEqual({ status: 200 });
+    expect(onUnhandled).toHaveBeenCalledTimes(1);
+  });
+});

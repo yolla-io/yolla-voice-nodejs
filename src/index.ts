@@ -49,6 +49,11 @@ export type {
   WebhookEventType,
   WebhookTestEvent,
 } from "./webhooks/events.js";
+export {
+  createWebhookHandler,
+  type WebhookHandler,
+  type WebhookHandlerOptions,
+} from "./webhooks/handler.js";
 export { getHeader, type HeadersLike } from "./webhooks/headers.js";
 export {
   Webhooks,

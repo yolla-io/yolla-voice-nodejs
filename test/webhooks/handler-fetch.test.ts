@@ -1,0 +1,97 @@
+import { describe, expect, it, vi } from "vitest";
+import { createWebhookHandler } from "../../src/webhooks/handler.js";
+import { signWebhook } from "../../src/webhooks/sign.js";
+
+const secret = "whsec_test";
+const completed = { id: "evt_1", type: "call.completed", data: { callId: "c1" } };
+
+function post(payload: object | string, opts: { secret?: string; method?: string } = {}) {
+  const signed = signWebhook(payload, { secret: opts.secret ?? secret });
+  return new Request("https://app.example.test/hook", {
+    method: opts.method ?? "POST",
+    headers: signed.headers,
+    ...(opts.method !== "GET" && { body: signed.body }),
+  });
+}
+
+async function expectJson(res: Response, status: number, body: object) {
+  expect(res.status).toBe(status);
+  expect(res.headers.get("content-type")).toBe("application/json");
+  expect(await res.text()).toBe(JSON.stringify(body));
+}
+
+describe("createWebhookHandler fetch adapter", () => {
+  it("calls the typed handler once and answers 200", async () => {
+    const onCompleted = vi.fn();
+    const handler = createWebhookHandler({ secret, on: { "call.completed": onCompleted } });
+    await expectJson(await handler.fetch(post(completed)), 200, { received: true });
+    expect(onCompleted).toHaveBeenCalledTimes(1);
+    expect(onCompleted).toHaveBeenCalledWith(completed);
+  });
+
+  it("routes events without a handler and unknown types to onUnhandled", async () => {
+    const onUnhandled = vi.fn();
+    const handler = createWebhookHandler({ secret, on: {}, onUnhandled });
+    await expectJson(await handler.fetch(post({ id: "e", type: "webhook.test", data: {} })), 200, {
+      received: true,
+    });
+    await expectJson(await handler.fetch(post({ id: "e2", type: "future.thing", data: {} })), 200, {
+      received: true,
+    });
+    expect(onUnhandled).toHaveBeenCalledTimes(2);
+  });
+
+  it("answers 200 for an unhandled event without onUnhandled", async () => {
+    const handler = createWebhookHandler({ secret, on: {} });
+    expect((await handler.fetch(post(completed))).status).toBe(200);
+  });
+
+  it("answers 401 on a bad signature without calling handlers", async () => {
+    const onCompleted = vi.fn();
+    const handler = createWebhookHandler({ secret, on: { "call.completed": onCompleted } });
+    await expectJson(await handler.fetch(post(completed, { secret: "wrong" })), 401, {
+      error: "invalid signature",
+    });
+    expect(onCompleted).not.toHaveBeenCalled();
+  });
+
+  it("answers 500 without leaking the error and reports it to onError", async () => {
+    const boom = new Error("secret stack detail");
+    const onError = vi.fn();
+    const handler = createWebhookHandler({
+      secret,
+      on: {
+        "call.completed": () => {
+          throw boom;
+        },
+      },
+      onError,
+    });
+    const res = await handler.fetch(post(completed));
+    await expectJson(res, 500, { error: "handler failed" });
+    expect(onError).toHaveBeenCalledWith(boom);
+  });
+
+  it("answers 405 to a non-POST request", async () => {
+    const handler = createWebhookHandler({ secret, on: {} });
+    await expectJson(await handler.fetch(post(completed, { method: "GET" })), 405, {
+      error: "method not allowed",
+    });
+  });
+
+  it("answers 413 when content-length is over 1 MiB", async () => {
+    const onCompleted = vi.fn();
+    const handler = createWebhookHandler({ secret, on: { "call.completed": onCompleted } });
+    const big = JSON.stringify({ ...completed, pad: "x".repeat(1024 * 1024 + 1) });
+    const res = await handler.fetch(post(big));
+    await expectJson(res, 413, { error: "payload too large" });
+    expect(onCompleted).not.toHaveBeenCalled();
+  });
+
+  it("handle() returns only the status", async () => {
+    const handler = createWebhookHandler({ secret, on: {} });
+    const signed = signWebhook(completed, { secret });
+    expect(await handler.handle(signed.body, signed.headers)).toEqual({ status: 200 });
+    expect(await handler.handle("{}", {})).toEqual({ status: 401 });
+  });
+});

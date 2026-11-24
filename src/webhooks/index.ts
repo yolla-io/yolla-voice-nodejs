@@ -1,4 +1,9 @@
 import type { WebhookEvent } from "./events.js";
+import {
+  createWebhookHandler,
+  type WebhookHandler,
+  type WebhookHandlerOptions,
+} from "./handler.js";
 import type { HeadersLike } from "./headers.js";
 import { type SignedWebhook, signWebhook } from "./sign.js";
 import { verifyWebhook } from "./verify.js";
@@ -48,5 +53,12 @@ export class Webhooks {
     const resolved = this.#resolve(opts.secret);
     const secret = typeof resolved === "string" ? resolved : (resolved[0] as string);
     return signWebhook(payload, { ...opts, secret });
+  }
+
+  /** Creates a webhook endpoint handler; `secret` falls back to the client secret. */
+  createHandler(
+    opts: Omit<WebhookHandlerOptions, "secret"> & { secret?: string | string[] },
+  ): WebhookHandler {
+    return createWebhookHandler({ ...opts, secret: this.#resolve(opts.secret) });
   }
 }
