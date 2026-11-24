@@ -41,8 +41,8 @@ if (doc.components?.responses) fillResponses(doc.components.responses);
 const date = new Date().toISOString().slice(0, 10);
 const header = `# Reseller API contract, source version ${doc.info.version}, synced ${date}. Do not edit; run npm run sync-contract.\n`;
 const body = stringify(doc, { lineWidth: 0 });
-if (/[Ѐ-ӿ]/.test(body)) {
-  const line = body.split("\n").find((l) => /[Ѐ-ӿ]/.test(l));
+if (/[\u0400-\u04FF]/.test(body)) {
+  const line = body.split("\n").find((l) => /[\u0400-\u04FF]/.test(l));
   console.error(`Cyrillic text remains in the contract: ${line?.trim()}`);
   process.exit(1);
 }
