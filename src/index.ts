@@ -37,3 +37,23 @@ export type {
   Rate,
 } from "./types.js";
 export { VERSION } from "./version.js";
+export type {
+  BalanceLowEvent,
+  CallQualityEvent,
+  CallWebhookEvent,
+  CallWebhookEventType,
+  KnownWebhookEvent,
+  UnknownWebhookEvent,
+  WebhookEvent,
+  WebhookEventOf,
+  WebhookEventType,
+  WebhookTestEvent,
+} from "./webhooks/events.js";
+export { getHeader, type HeadersLike } from "./webhooks/headers.js";
+export {
+  Webhooks,
+  type WebhooksSignOptions,
+  type WebhooksVerifyOptions,
+} from "./webhooks/index.js";
+export { type SignedWebhook, type SignWebhookOptions, signWebhook } from "./webhooks/sign.js";
+export { type VerifyWebhookOptions, verifyWebhook } from "./webhooks/verify.js";

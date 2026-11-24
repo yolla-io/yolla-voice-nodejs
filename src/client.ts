@@ -2,6 +2,7 @@ import { HttpClient, type RequestOptions } from "./http.js";
 import { BalanceResource } from "./resources/balance.js";
 import { Calls } from "./resources/calls.js";
 import { Pricing } from "./resources/pricing.js";
+import { Webhooks } from "./webhooks/index.js";
 
 export type { RequestOptions };
 
@@ -23,6 +24,7 @@ export class YollaVoice {
   readonly calls: Calls;
   readonly balance: BalanceResource;
   readonly pricing: Pricing;
+  readonly webhooks: Webhooks;
   readonly #webhookSecret: string | string[] | undefined;
 
   constructor(opts: YollaVoiceOptions = {}) {
@@ -46,5 +48,6 @@ export class YollaVoice {
     this.calls = new Calls(http);
     this.balance = new BalanceResource(http);
     this.pricing = new Pricing(http);
+    this.webhooks = new Webhooks(this.#webhookSecret);
   }
 }

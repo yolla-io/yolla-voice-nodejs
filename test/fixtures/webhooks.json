@@ -1,0 +1,16 @@
+{
+  "secret": "whsec_test",
+  "timestamp": 1792491675,
+  "vectors": [
+    {
+      "name": "webhook.test",
+      "body": "{\n  \"id\": \"evt_01JDP9T4K7M2N5Q8R1S3V6X9Z0\",\n  \"type\": \"webhook.test\",\n  \"seq\": 0,\n  \"createdAt\": \"2026-11-23T10:15:00.000Z\",\n  \"data\": {}\n}",
+      "signature": "v1=4d3d992e98344c6dbe68bee8fe60bef095512d6d90845e6f88bc84948088d933"
+    },
+    {
+      "name": "call.completed",
+      "body": "{\"id\":\"evt_01JDPA0B1C2D3E4F5G6H7J8K9M\",\"type\":\"call.completed\",\"seq\":4,\"createdAt\":\"2026-11-23T10:20:00.000Z\",\"data\":{\"call\":{\"callId\":\"call_01JDPA0B1C2D3E4F5G6H7J8K9N\",\"externalUserId\":\"user-ü-42\",\"status\":\"completed\"}}}",
+      "signature": "v1=e0561a974544579b0dee6678311520d9260bb5204224a869525acde784d31185"
+    }
+  ]
+}
