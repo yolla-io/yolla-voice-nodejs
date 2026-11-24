@@ -1,5 +1,7 @@
 // Writes openapi/reseller-api.yaml from a source contract with prose keys stripped.
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
 
 const source = process.argv[2];
@@ -8,16 +10,17 @@ if (!source) {
   process.exit(1);
 }
 
-const STRIP = new Set(["description", "summary", "example"]);
+// Prose, examples and internal planning metadata. All of them are dropped wherever they appear,
+// except as keys of `properties`, where a key is a field name.
+const STRIP = new Set(["description", "summary", "example", "examples", "x-mvp"]);
 
-// Drops prose keys; a property that is merely named "description" holds an object and stays.
-function strip(node) {
-  if (Array.isArray(node)) return node.map(strip);
+function strip(node, parentKey) {
+  if (Array.isArray(node)) return node.map((item) => strip(item));
   if (node && typeof node === "object") {
     const out = {};
     for (const [key, value] of Object.entries(node)) {
-      if (STRIP.has(key) && typeof value !== "object") continue;
-      out[key] = strip(value);
+      if (parentKey !== "properties" && STRIP.has(key)) continue;
+      out[key] = strip(value, key);
     }
     // OpenAPI requires a description on every response object and redocly requires an operation summary.
     if (out.responses && typeof out.responses === "object") fillResponses(out.responses);
@@ -39,7 +42,8 @@ function fillResponses(responses) {
 const doc = strip(parse(readFileSync(source, "utf8")));
 if (doc.components?.responses) fillResponses(doc.components.responses);
 const date = new Date().toISOString().slice(0, 10);
-const header = `# Reseller API contract, source version ${doc.info.version}, synced ${date}. Do not edit; run npm run sync-contract.\n`;
+const commit = sourceCommit(source);
+const header = `# Reseller API contract, source version ${doc.info.version}, commit ${commit}, synced ${date}. Do not edit; run npm run sync-contract.\n`;
 const body = stringify(doc, { lineWidth: 0 });
 if (/[\u0400-\u04FF]/.test(body)) {
   const line = body.split("\n").find((l) => /[\u0400-\u04FF]/.test(l));
@@ -47,3 +51,16 @@ if (/[\u0400-\u04FF]/.test(body)) {
   process.exit(1);
 }
 writeFileSync(new URL("../openapi/reseller-api.yaml", import.meta.url), header + body);
+
+// The last commit that changed the source file, with "+changes" when the file is modified.
+function sourceCommit(file) {
+  const git = (...args) =>
+    execFileSync("git", ["-C", dirname(file), ...args], { encoding: "utf8" }).trim();
+  try {
+    const hash = git("log", "-1", "--format=%h", "--", file.split("/").pop());
+    const dirty = git("status", "--porcelain", "--", file.split("/").pop()) !== "";
+    return hash ? `${hash}${dirty ? "+changes" : ""}` : "unknown";
+  } catch {
+    return "unknown";
+  }
+}

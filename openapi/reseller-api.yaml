@@ -1,4 +1,4 @@
-# Reseller API contract, source version 0.1.0-draft, synced 2026-11-24. Do not edit; run npm run sync-contract.
+# Reseller API contract, source version 0.1.0-draft, commit 5bbe855, synced 2026-11-24. Do not edit; run npm run sync-contract.
 openapi: 3.1.0
 info:
   title: Yolla Voice Reseller API
@@ -25,13 +25,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateCallRequest"
-            example:
-              to: "4915112345678"
-              from: "442071234567"
-              externalUserId: app-user-8812
-              customParams:
-                orderId: A-10042
-              maxDuration: 1800
       responses:
         "200":
           content:
@@ -170,7 +163,6 @@ paths:
       tags:
         - calls
       operationId: holdCall
-      x-mvp: maybe
       security:
         - apiKey: []
       parameters:
@@ -202,7 +194,6 @@ paths:
       tags:
         - calls
       operationId: unholdCall
-      x-mvp: maybe
       security:
         - apiKey: []
       parameters:

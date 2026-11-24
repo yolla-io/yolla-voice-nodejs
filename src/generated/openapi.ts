@@ -839,17 +839,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "to": "4915112345678",
-                 *       "from": "442071234567",
-                 *       "externalUserId": "app-user-8812",
-                 *       "customParams": {
-                 *         "orderId": "A-10042"
-                 *       },
-                 *       "maxDuration": 1800
-                 *     }
-                 */
                 "application/json": components["schemas"]["CreateCallRequest"];
             };
         };

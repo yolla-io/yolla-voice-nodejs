@@ -17,9 +17,7 @@ try {
       "-o",
       out,
     ],
-    {
-      stdio: "ignore",
-    },
+    { stdio: ["ignore", "ignore", "inherit"] },
   );
   const fresh = readFileSync(out, "utf8");
   const committed = readFileSync("src/generated/openapi.ts", "utf8");

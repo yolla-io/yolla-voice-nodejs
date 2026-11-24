@@ -38,8 +38,7 @@
     "node": ">=20.19"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -63,6 +62,6 @@
     "openapi-typescript": "7.13.0",
     "typescript": "5.9.3",
     "vitest": "4.1.12",
-    "yaml": "^2.9.1"
+    "yaml": "2.9.1"
   }
 }
