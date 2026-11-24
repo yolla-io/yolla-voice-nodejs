@@ -32,7 +32,8 @@ export type WebhookEventType = KnownWebhookEvent["type"];
  *
  * `data` is typed `never` on purpose: TypeScript cannot exclude a `type: string` member when you
  * narrow on a known type, so `never` is what keeps `event.data` exact after
- * `if (event.type === "call.completed")`. Read it with `event.data as unknown`.
+ * `if (event.type === "call.completed")`. Read it with `event.data as unknown`, or narrow the event
+ * with `isKnownWebhookEvent`.
  */
 export interface UnknownWebhookEvent extends EventEnvelope {
   data: never;
@@ -41,3 +42,24 @@ export interface UnknownWebhookEvent extends EventEnvelope {
 export type WebhookEvent = KnownWebhookEvent | UnknownWebhookEvent;
 
 export type WebhookEventOf<T extends WebhookEventType> = Extract<KnownWebhookEvent, { type: T }>;
+
+const KNOWN_TYPES: Record<WebhookEventType, true> = {
+  "call.initiated": true,
+  "call.answered": true,
+  "call.held": true,
+  "call.unheld": true,
+  "call.hold_failed": true,
+  "call.completed": true,
+  "call.expired": true,
+  "call.quality": true,
+  "balance.low": true,
+  "webhook.test": true,
+};
+
+/**
+ * True when this SDK version knows the event type. Use it in the `default` branch of a switch on
+ * `event.type` to get typed `data` back, or to log types you do not handle yet.
+ */
+export function isKnownWebhookEvent(event: WebhookEvent): event is KnownWebhookEvent {
+  return Object.hasOwn(KNOWN_TYPES, event.type);
+}

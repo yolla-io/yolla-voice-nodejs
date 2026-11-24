@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { WebhookVerificationError } from "../../src/errors.js";
 import { createWebhookHandler } from "../../src/webhooks/handler.js";
 import { signWebhook } from "../../src/webhooks/sign.js";
 
@@ -57,6 +58,27 @@ describe("createWebhookHandler fetch adapter", () => {
       error: "invalid signature",
     });
     expect(onCompleted).not.toHaveBeenCalled();
+  });
+
+  it("passes a verification failure to onError and keeps the 401 body generic", async () => {
+    const onError = vi.fn();
+    const handler = createWebhookHandler({ secret, on: {}, onError });
+    await expectJson(await handler.fetch(post(completed, { secret: "wrong" })), 401, {
+      error: "invalid signature",
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
+    const [err] = onError.mock.calls[0] as [WebhookVerificationError];
+    expect(err).toBeInstanceOf(WebhookVerificationError);
+    expect(err.reason).toBe("bad_signature");
+  });
+
+  it("does not dispatch an event type named like an Object.prototype member", async () => {
+    const onUnhandled = vi.fn();
+    const handler = createWebhookHandler({ secret, on: {}, onUnhandled });
+    for (const type of ["toString", "hasOwnProperty", "constructor"]) {
+      expect((await handler.fetch(post({ id: "e", type, data: {} }))).status).toBe(200);
+    }
+    expect(onUnhandled).toHaveBeenCalledTimes(3);
   });
 
   it("answers 500 without leaking the error and reports it to onError", async () => {

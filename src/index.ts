@@ -37,17 +37,18 @@ export type {
   Rate,
 } from "./types.js";
 export { VERSION } from "./version.js";
-export type {
-  BalanceLowEvent,
-  CallQualityEvent,
-  CallWebhookEvent,
-  CallWebhookEventType,
-  KnownWebhookEvent,
-  UnknownWebhookEvent,
-  WebhookEvent,
-  WebhookEventOf,
-  WebhookEventType,
-  WebhookTestEvent,
+export {
+  type BalanceLowEvent,
+  type CallQualityEvent,
+  type CallWebhookEvent,
+  type CallWebhookEventType,
+  isKnownWebhookEvent,
+  type KnownWebhookEvent,
+  type UnknownWebhookEvent,
+  type WebhookEvent,
+  type WebhookEventOf,
+  type WebhookEventType,
+  type WebhookTestEvent,
 } from "./webhooks/events.js";
 export {
   createWebhookHandler,

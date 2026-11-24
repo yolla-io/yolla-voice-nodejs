@@ -20,16 +20,19 @@ export interface WebhookHandlerOptions {
   on: { [T in WebhookEventType]?: ((event: WebhookEventOf<T>) => unknown) | undefined };
   /** Called for events without a handler, including unknown types. */
   onUnhandled?: ((event: WebhookEvent) => unknown) | undefined;
-  /** Called with the real error when a handler fails; the response never contains it. */
+  /**
+   * Called with the real error when the request is answered 401 (a `WebhookVerificationError`
+   * with its `reason`) or 500 (your handler threw). The response never contains it.
+   */
   onError?: ((err: unknown) => unknown) | undefined;
 }
 
 export interface WebhookHandler {
   /** Verifies and dispatches a request body you already read. Never throws. */
   handle(rawBody: string | Uint8Array, headers: HeadersLike): Promise<{ status: 200 | 401 | 500 }>;
-  /** `(req, res)` for `http.createServer`, Express or Fastify. Needs the raw body. */
+  /** `(req, res)` for `http.createServer` and Express. Needs the raw body. */
   node: (req: IncomingMessage, res: ServerResponse) => Promise<void>;
-  /** `Request` to `Response` for Next.js route handlers, Hono, Bun, Deno and workers. */
+  /** `Request` to `Response` for Next.js route handlers, Hono, Bun and Deno. */
   fetch: (request: Request) => Promise<Response>;
 }
 
@@ -66,14 +69,12 @@ export function createWebhookHandler(opts: WebhookHandlerOptions): WebhookHandle
     try {
       event = verifyWebhook(rawBody, headers, { secret, toleranceSec: opts.toleranceSec });
     } catch (err) {
-      if (err instanceof WebhookVerificationError) return { status: 401 };
       report(err);
-      return { status: 500 };
+      return { status: err instanceof WebhookVerificationError ? 401 : 500 };
     }
     try {
-      const fn = (opts.on as Record<string, ((e: WebhookEvent) => unknown) | undefined>)[
-        event.type
-      ];
+      const on = opts.on as Record<string, ((e: WebhookEvent) => unknown) | undefined>;
+      const fn = Object.hasOwn(on, event.type) ? on[event.type] : undefined;
       if (fn) await fn(event);
       else await opts.onUnhandled?.(event);
     } catch (err) {

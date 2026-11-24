@@ -199,7 +199,8 @@ app.post("/webhooks/yolla", express.raw({ type: "application/json" }), handler.n
 
 Mount `express.raw` on this route and keep `express.json()` away from it. If the body is already
 parsed, the handler answers 500 and passes `onError` a `TypeError` that names `express.raw`.
-`handler.node` also works with `http.createServer` and Fastify (with a raw body parser).
+`handler.node` also works with `http.createServer`. For other frameworks, read the raw body
+yourself and call `handler.handle(rawBody, headers)`, which returns `{ status }` and never throws.
 
 ### Next.js and other Fetch runtimes
 
@@ -215,17 +216,21 @@ const handler = createWebhookHandler({
 export const POST = handler.fetch;
 ```
 
-`handler.fetch` maps `Request` to `Response`, so it also fits Hono, Bun, Deno and workers. If you
+`handler.fetch` maps `Request` to `Response`, so it also fits Hono, Bun and Deno. If you
 already created a client with a `webhookSecret`, use `yolla.webhooks.createHandler({ on })`.
 
 The handler answers `200 {"received":true}`, `401` for a bad signature or timestamp, `500` when
-your handler throws (the error goes to `onError`, never into the response), `405` for non-POST
-requests and `413` for a body over 1 MiB.
+your handler throws, `405` for non-POST requests and `413` for a body over 1 MiB. `onError`
+receives the real error of every `401` (a `WebhookVerificationError` with its `reason`: log it to
+find a wrong secret or clock skew) and of every `500`. The response body never contains it.
+
+`secret` defaults to `YOLLA_WEBHOOK_SECRET`. `createWebhookHandler` checks it when you create the
+handler and throws if there is none, so a misconfigured service fails at startup.
 
 ### Verifying yourself
 
 ```ts
-import { WebhookVerificationError } from "@yolla-io/yolla-voice-nodejs";
+import { isKnownWebhookEvent, WebhookVerificationError } from "@yolla-io/yolla-voice-nodejs";
 
 try {
   const event = yolla.webhooks.verify(rawBody, request.headers); // string, Buffer or Uint8Array
@@ -237,8 +242,9 @@ try {
       console.log(event.data.quality.mosEstimate);
       break;
     default:
-      // Event types added later arrive here. Their data is typed `never` on purpose;
-      // read it with `event.data as unknown`.
+      // Event types added later arrive here. Their data is typed `never` on purpose:
+      // narrow with isKnownWebhookEvent(event), or read it with `event.data as unknown`.
+      if (!isKnownWebhookEvent(event)) console.log("new event type", event.type);
       break;
   }
 } catch (err) {
@@ -248,7 +254,8 @@ try {
 }
 ```
 
-`verifyWebhook(rawBody, headers, { secret })` does the same without a client. Headers can be a
+`verifyWebhook(rawBody, headers, { secret })` does the same without a client; `secret` defaults to
+`YOLLA_WEBHOOK_SECRET`. Headers can be a
 `Headers` object or a Node header map, in any case. The timestamp must be within 5 minutes of your
 clock (`toleranceSec`, default 300).
 

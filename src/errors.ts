@@ -19,8 +19,15 @@ export type ErrorCode =
   | "internal_error"
   | "rate_limited"
   | "concurrent_limit"
+  | "payload_too_large"
   | "connection_error"
   | "timeout"
+  | "invalid_response"
+  | "unknown_error"
+  | "missing_header"
+  | "bad_signature"
+  | "stale_timestamp"
+  | "invalid_payload"
   | (string & {});
 
 export interface YollaVoiceErrorInit {
