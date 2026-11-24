@@ -2,7 +2,7 @@ import { createWebhookHandler } from "@yolla-io/yolla-voice-nodejs";
 import express from "express";
 
 const handler = createWebhookHandler({
-  secret: process.env.YOLLA_WEBHOOK_SECRET ?? "",
+  secret: process.env.YOLLA_WEBHOOK_SECRET,
   on: {
     "call.completed": async (event) => {
       console.log(event.data.call.id, event.data.call.billedDuration);

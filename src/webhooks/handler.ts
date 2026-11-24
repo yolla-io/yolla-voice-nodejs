@@ -2,22 +2,26 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { WebhookVerificationError } from "../errors.js";
 import type { WebhookEvent, WebhookEventOf, WebhookEventType } from "./events.js";
 import type { HeadersLike } from "./headers.js";
+import { resolveWebhookSecret, type WebhookSecret } from "./secret.js";
 import { verifyWebhook } from "./verify.js";
 
 /** Largest request body the adapters accept. */
 const MAX_BODY_BYTES = 1024 * 1024;
 
 export interface WebhookHandlerOptions {
-  /** Webhook secret, or several during rotation. */
-  secret: string | string[];
+  /**
+   * Webhook secret, or several during rotation. Defaults to the YOLLA_WEBHOOK_SECRET environment
+   * variable. Checked when the handler is created.
+   */
+  secret?: WebhookSecret | undefined;
   /** Allowed distance between the timestamp header and the clock. Default 300. */
-  toleranceSec?: number;
-  /** Handlers by event type. */
-  on: { [T in WebhookEventType]?: (event: WebhookEventOf<T>) => void | Promise<void> };
+  toleranceSec?: number | undefined;
+  /** Handlers by event type. The returned value is awaited and ignored. */
+  on: { [T in WebhookEventType]?: ((event: WebhookEventOf<T>) => unknown) | undefined };
   /** Called for events without a handler, including unknown types. */
-  onUnhandled?: (event: WebhookEvent) => void | Promise<void>;
+  onUnhandled?: ((event: WebhookEvent) => unknown) | undefined;
   /** Called with the real error when a handler fails; the response never contains it. */
-  onError?: (err: unknown) => void;
+  onError?: ((err: unknown) => unknown) | undefined;
 }
 
 export interface WebhookHandler {
@@ -45,6 +49,7 @@ const NOT_RAW =
 
 /** Creates a webhook endpoint handler with adapters for Node `http` and Fetch. */
 export function createWebhookHandler(opts: WebhookHandlerOptions): WebhookHandler {
+  const secret = resolveWebhookSecret(opts.secret);
   const report = (err: unknown): void => {
     try {
       opts.onError?.(err);
@@ -59,10 +64,7 @@ export function createWebhookHandler(opts: WebhookHandlerOptions): WebhookHandle
   ): Promise<{ status: 200 | 401 | 500 }> {
     let event: WebhookEvent;
     try {
-      event = verifyWebhook(rawBody, headers, {
-        secret: opts.secret,
-        ...(opts.toleranceSec !== undefined && { toleranceSec: opts.toleranceSec }),
-      });
+      event = verifyWebhook(rawBody, headers, { secret, toleranceSec: opts.toleranceSec });
     } catch (err) {
       if (err instanceof WebhookVerificationError) return { status: 401 };
       report(err);

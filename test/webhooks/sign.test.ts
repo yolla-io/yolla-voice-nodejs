@@ -8,6 +8,7 @@ const [testVector] = fixture.vectors;
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllEnvs();
 });
 
 describe("signWebhook", () => {
@@ -53,5 +54,17 @@ describe("signWebhook", () => {
     const a = signWebhook("{}", { secret: "s" }).headers["X-Voice-Delivery-Id"];
     const b = signWebhook("{}", { secret: "s" }).headers["X-Voice-Delivery-Id"];
     expect(a).not.toBe(b);
+  });
+
+  it("signs with the first secret of a list and falls back to YOLLA_WEBHOOK_SECRET", () => {
+    const opts = { timestamp: fixture.timestamp };
+    const expected = testVector.signature;
+    const sig = (o: Parameters<typeof signWebhook>[1]) =>
+      signWebhook(testVector.body, o).headers["X-Voice-Signature"];
+    expect(sig({ ...opts, secret: [fixture.secret, "old"] })).toBe(expected);
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", fixture.secret);
+    expect(sig(opts)).toBe(expected);
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", "");
+    expect(() => sig(opts)).toThrow("Missing webhook secret");
   });
 });

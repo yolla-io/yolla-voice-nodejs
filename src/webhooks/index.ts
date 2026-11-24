@@ -5,60 +5,34 @@ import {
   type WebhookHandlerOptions,
 } from "./handler.js";
 import type { HeadersLike } from "./headers.js";
-import { type SignedWebhook, signWebhook } from "./sign.js";
-import { verifyWebhook } from "./verify.js";
+import type { WebhookSecret } from "./secret.js";
+import { type SignedWebhook, type SignWebhookOptions, signWebhook } from "./sign.js";
+import { type VerifyWebhookOptions, verifyWebhook } from "./verify.js";
 
-export interface WebhooksVerifyOptions {
-  /** Overrides the client secret. */
-  secret?: string | string[];
-  toleranceSec?: number;
-  now?: () => number;
-}
-
-export interface WebhooksSignOptions {
-  /** Overrides the client secret. */
-  secret?: string;
-  timestamp?: number;
-}
-
-const MISSING_SECRET = "Missing webhook secret: pass secret or set YOLLA_WEBHOOK_SECRET";
-
-/** Webhook helpers bound to the client's webhook secret. */
+/** Webhook helpers that default `secret` to the client's `webhookSecret`. */
 export class Webhooks {
-  readonly #secret: string | string[] | undefined;
+  readonly #secret: WebhookSecret | undefined;
 
-  constructor(secret: string | string[] | undefined) {
+  constructor(secret: WebhookSecret | undefined) {
     this.#secret = secret;
-  }
-
-  #resolve(secret: string | string[] | undefined): string | string[] {
-    const resolved = secret || this.#secret || process.env.YOLLA_WEBHOOK_SECRET;
-    if (!resolved || (Array.isArray(resolved) && resolved.length === 0)) {
-      throw new Error(MISSING_SECRET);
-    }
-    return resolved;
   }
 
   /** Verifies a webhook request and returns the parsed event. See `verifyWebhook`. */
   verify(
     rawBody: string | Uint8Array,
     headers: HeadersLike,
-    opts: WebhooksVerifyOptions = {},
+    opts: VerifyWebhookOptions = {},
   ): WebhookEvent {
-    return verifyWebhook(rawBody, headers, { ...opts, secret: this.#resolve(opts.secret) });
+    return verifyWebhook(rawBody, headers, { ...opts, secret: opts.secret ?? this.#secret });
   }
 
   /** Signs a payload for tests. With a rotation list, signs with the first secret. */
-  sign(payload: object | string, opts: WebhooksSignOptions = {}): SignedWebhook {
-    const resolved = this.#resolve(opts.secret);
-    const secret = typeof resolved === "string" ? resolved : (resolved[0] as string);
-    return signWebhook(payload, { ...opts, secret });
+  sign(payload: object | string, opts: SignWebhookOptions = {}): SignedWebhook {
+    return signWebhook(payload, { ...opts, secret: opts.secret ?? this.#secret });
   }
 
-  /** Creates a webhook endpoint handler; `secret` falls back to the client secret. */
-  createHandler(
-    opts: Omit<WebhookHandlerOptions, "secret"> & { secret?: string | string[] },
-  ): WebhookHandler {
-    return createWebhookHandler({ ...opts, secret: this.#resolve(opts.secret) });
+  /** Creates a webhook endpoint handler. See `createWebhookHandler`. */
+  createHandler(opts: WebhookHandlerOptions): WebhookHandler {
+    return createWebhookHandler({ ...opts, secret: opts.secret ?? this.#secret });
   }
 }

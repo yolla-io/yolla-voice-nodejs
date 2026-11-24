@@ -9,9 +9,9 @@ import { VERSION } from "./version.js";
 
 /** Per-call overrides of the client settings. */
 export interface RequestOptions {
-  maxRetries?: number;
-  timeoutMs?: number;
-  signal?: AbortSignal;
+  maxRetries?: number | undefined;
+  timeoutMs?: number | undefined;
+  signal?: AbortSignal | undefined;
 }
 
 export interface HttpClientConfig {

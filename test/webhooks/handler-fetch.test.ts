@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createWebhookHandler } from "../../src/webhooks/handler.js";
 import { signWebhook } from "../../src/webhooks/sign.js";
 
@@ -13,6 +13,10 @@ function post(payload: object | string, opts: { secret?: string; method?: string
     ...(opts.method !== "GET" && { body: signed.body }),
   });
 }
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 async function expectJson(res: Response, status: number, body: object) {
   expect(res.status).toBe(status);
@@ -114,6 +118,18 @@ describe("createWebhookHandler fetch adapter", () => {
     expect(pulled).toBeLessThan(2 * 1024 * 1024);
     expect(canceled).toBe(true);
     expect(onUnhandled).not.toHaveBeenCalled();
+  });
+
+  it("falls back to YOLLA_WEBHOOK_SECRET", async () => {
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", secret);
+    const handler = createWebhookHandler({ secret: undefined, on: {} });
+    expect((await handler.fetch(post(completed))).status).toBe(200);
+  });
+
+  it("throws at creation, not per request, when no secret is given or set", () => {
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", "");
+    expect(() => createWebhookHandler({ on: {} })).toThrow("Missing webhook secret");
+    expect(() => createWebhookHandler({ secret: [secret, ""], on: {} })).toThrow(TypeError);
   });
 
   it("handle() returns only the status", async () => {

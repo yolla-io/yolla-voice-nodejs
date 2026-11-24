@@ -8,16 +8,17 @@ export type { RequestOptions };
 
 export interface YollaVoiceOptions {
   /** Defaults to the YOLLA_API_KEY environment variable. */
-  apiKey?: string;
+  apiKey?: string | undefined;
   /** Defaults to the YOLLA_BASE_URL environment variable. */
-  baseUrl?: string;
+  baseUrl?: string | undefined;
   /** Per-attempt timeout. Default 30000. */
-  timeoutMs?: number;
+  timeoutMs?: number | undefined;
   /** Retries after a 429, 5xx, network error or timeout. Default 2. */
-  maxRetries?: number;
-  fetch?: typeof fetch;
+  maxRetries?: number | undefined;
+  /** Custom `fetch`, for proxies or tests. Default: the global `fetch`. */
+  fetch?: typeof fetch | undefined;
   /** Webhook signing secret (or several, during rotation). Defaults to YOLLA_WEBHOOK_SECRET. */
-  webhookSecret?: string | string[];
+  webhookSecret?: string | string[] | undefined;
 }
 
 export class YollaVoice {
@@ -25,7 +26,6 @@ export class YollaVoice {
   readonly balance: BalanceResource;
   readonly pricing: Pricing;
   readonly webhooks: Webhooks;
-  readonly #webhookSecret: string | string[] | undefined;
 
   constructor(opts: YollaVoiceOptions = {}) {
     const apiKey = opts.apiKey || process.env.YOLLA_API_KEY;
@@ -37,7 +37,6 @@ export class YollaVoice {
     if (!(timeoutMs > 0)) throw new RangeError("timeoutMs must be greater than 0");
     if (!(maxRetries >= 0)) throw new RangeError("maxRetries must be 0 or greater");
 
-    this.#webhookSecret = opts.webhookSecret || process.env.YOLLA_WEBHOOK_SECRET || undefined;
     const http = new HttpClient({
       apiKey,
       baseUrl,
@@ -48,6 +47,6 @@ export class YollaVoice {
     this.calls = new Calls(http);
     this.balance = new BalanceResource(http);
     this.pricing = new Pricing(http);
-    this.webhooks = new Webhooks(this.#webhookSecret);
+    this.webhooks = new Webhooks(opts.webhookSecret);
   }
 }

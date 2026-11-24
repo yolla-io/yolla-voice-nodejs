@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { WebhookVerificationError } from "../errors.js";
 import type { WebhookEvent } from "./events.js";
 import { getHeader, type HeadersLike } from "./headers.js";
+import { resolveWebhookSecret, type WebhookSecret } from "./secret.js";
 
 export const TIMESTAMP_HEADER = "X-Voice-Timestamp";
 export const SIGNATURE_HEADER = "X-Voice-Signature";
@@ -9,12 +10,15 @@ export const DELIVERY_ID_HEADER = "X-Voice-Delivery-Id";
 export const DEFAULT_TOLERANCE_SEC = 300;
 
 export interface VerifyWebhookOptions {
-  /** Webhook secret, or several during rotation: the signature must match any one of them. */
-  secret: string | string[];
+  /**
+   * Webhook secret, or several during rotation: the signature must match any one of them.
+   * Defaults to the YOLLA_WEBHOOK_SECRET environment variable.
+   */
+  secret?: WebhookSecret | undefined;
   /** Allowed distance between the timestamp header and the clock. Default 300. */
-  toleranceSec?: number;
+  toleranceSec?: number | undefined;
   /** Clock in milliseconds. Default `Date.now`. */
-  now?: () => number;
+  now?: (() => number) | undefined;
 }
 
 /** Bytes of the raw body: strings as UTF-8, so a string and its Buffer sign the same. */
@@ -43,12 +47,9 @@ export function computeSignature(secret: string, timestamp: string, body: Buffer
 export function verifyWebhook(
   rawBody: string | Uint8Array,
   headers: HeadersLike,
-  opts: VerifyWebhookOptions,
+  opts: VerifyWebhookOptions = {},
 ): WebhookEvent {
-  const secrets = typeof opts.secret === "string" ? [opts.secret] : opts.secret;
-  if (!Array.isArray(secrets) || secrets.length === 0 || secrets.some((s) => !s)) {
-    throw new TypeError("Webhook secret must be a non-empty string or a non-empty list of them");
-  }
+  const secrets = resolveWebhookSecret(opts.secret);
   const body = bodyBytes(rawBody);
 
   const timestamp = getHeader(headers, TIMESTAMP_HEADER)?.trim();

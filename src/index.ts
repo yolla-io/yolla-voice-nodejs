@@ -54,11 +54,8 @@ export {
   type WebhookHandler,
   type WebhookHandlerOptions,
 } from "./webhooks/handler.js";
-export { getHeader, type HeadersLike } from "./webhooks/headers.js";
-export {
-  Webhooks,
-  type WebhooksSignOptions,
-  type WebhooksVerifyOptions,
-} from "./webhooks/index.js";
+export type { HeadersLike } from "./webhooks/headers.js";
+export type { Webhooks } from "./webhooks/index.js";
+export type { WebhookSecret } from "./webhooks/secret.js";
 export { type SignedWebhook, type SignWebhookOptions, signWebhook } from "./webhooks/sign.js";
 export { type VerifyWebhookOptions, verifyWebhook } from "./webhooks/verify.js";

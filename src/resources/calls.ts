@@ -13,7 +13,7 @@ const MAX_IDEMPOTENCY_KEY_LENGTH = 128;
 
 export interface CreateCallOptions extends RequestOptions {
   /** Defaults to a random UUID, which stays the same across the SDK's own retries. */
-  idempotencyKey?: string;
+  idempotencyKey?: string | undefined;
 }
 
 export interface CreateCallResult {

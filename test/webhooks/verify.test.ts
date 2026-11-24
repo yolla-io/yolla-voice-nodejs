@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WebhookVerificationError } from "../../src/errors.js";
 import { verifyWebhook } from "../../src/webhooks/verify.js";
 import { loadFixture } from "./fixture.js";
@@ -9,6 +9,10 @@ const [testVector, callVector] = fixture.vectors;
 const secret = fixture.secret;
 const ts = fixture.timestamp;
 const now = () => ts * 1000;
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 function headersFor(signature: string, timestamp: string = String(ts)) {
   return { "x-voice-timestamp": timestamp, "x-voice-signature": signature };
@@ -160,12 +164,31 @@ describe("verifyWebhook", () => {
     );
   });
 
-  it("throws TypeError on an empty secret list", () => {
+  it("falls back to YOLLA_WEBHOOK_SECRET when secret is omitted, empty or an empty list", () => {
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", secret);
+    const headers = headersFor(testVector.signature);
+    expect(verifyWebhook(testVector.body, headers, { now }).type).toBe("webhook.test");
+    expect(verifyWebhook(testVector.body, headers, { secret: undefined, now }).type).toBe(
+      "webhook.test",
+    );
+    expect(verifyWebhook(testVector.body, headers, { secret: "", now }).type).toBe("webhook.test");
+    expect(verifyWebhook(testVector.body, headers, { secret: [], now }).type).toBe("webhook.test");
+  });
+
+  it("throws a missing-secret error when no secret is given or set", () => {
+    vi.stubEnv("YOLLA_WEBHOOK_SECRET", "");
+    const headers = headersFor(testVector.signature);
+    const message = "Missing webhook secret: pass secret or set YOLLA_WEBHOOK_SECRET";
+    expect(() => verifyWebhook(testVector.body, headers, { now })).toThrow(message);
+    expect(() => verifyWebhook(testVector.body, headers, { secret: [], now })).toThrow(message);
+  });
+
+  it("throws TypeError on a rotation list with an empty secret", () => {
     expect(() =>
-      verifyWebhook(testVector.body, headersFor(testVector.signature), { secret: [], now }),
-    ).toThrow(TypeError);
-    expect(() =>
-      verifyWebhook(testVector.body, headersFor(testVector.signature), { secret: "", now }),
+      verifyWebhook(testVector.body, headersFor(testVector.signature), {
+        secret: [secret, ""],
+        now,
+      }),
     ).toThrow(TypeError);
   });
 
