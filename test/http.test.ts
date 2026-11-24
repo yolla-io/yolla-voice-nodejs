@@ -249,6 +249,21 @@ describe("retries", () => {
     expect(m.calls).toHaveLength(1);
   });
 
+  test("invalid per-call maxRetries or timeoutMs rejects before any request", async () => {
+    const m = mockFetch(jsonResponse(200, {}));
+    const http = client(m.fetch);
+    for (const opts of [
+      { maxRetries: Number.NaN },
+      { maxRetries: Number.POSITIVE_INFINITY },
+      { maxRetries: -1 },
+      { timeoutMs: Number.NaN },
+      { timeoutMs: 0 },
+    ]) {
+      expect(await rejection(http.request(get, opts))).toBeInstanceOf(RangeError);
+    }
+    expect(m.calls).toHaveLength(0);
+  });
+
   test("caller abort during the backoff sleep rejects with the abort reason", async () => {
     const m = mockFetch(
       apiError(503, "service_unavailable", "Unavailable", "r1"),

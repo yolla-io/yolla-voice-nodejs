@@ -32,16 +32,12 @@ export class YollaVoice {
     if (!apiKey) throw new Error("Missing API key: pass apiKey or set YOLLA_API_KEY");
     const baseUrl = opts.baseUrl || process.env.YOLLA_BASE_URL;
     if (!baseUrl) throw new Error("Missing baseUrl: pass baseUrl or set YOLLA_BASE_URL");
-    const timeoutMs = opts.timeoutMs ?? 30_000;
-    const maxRetries = opts.maxRetries ?? 2;
-    if (!(timeoutMs > 0)) throw new RangeError("timeoutMs must be greater than 0");
-    if (!(maxRetries >= 0)) throw new RangeError("maxRetries must be 0 or greater");
 
     const http = new HttpClient({
       apiKey,
       baseUrl,
-      timeoutMs,
-      maxRetries,
+      timeoutMs: opts.timeoutMs ?? 30_000,
+      maxRetries: opts.maxRetries ?? 2,
       fetch: opts.fetch ?? globalThis.fetch,
     });
     this.calls = new Calls(http);

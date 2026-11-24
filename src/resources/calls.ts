@@ -50,26 +50,21 @@ export class Calls {
   }
 
   list(params: ListCallsParams = {}, opts: RequestOptions = {}): CallPagePromise {
-    return listCallPages(
-      async (cursor) =>
-        (
-          await this.#http.request<CallList>(
-            {
-              method: "GET",
-              path: "/v1/calls",
-              query: { ...params, ...(cursor === undefined ? {} : { cursor }) },
-              retryable: true,
-            },
-            opts,
-          )
-        ).data,
+    return listCallPages((cursor) =>
+      this.#http.json<CallList>(
+        {
+          method: "GET",
+          path: "/v1/calls",
+          query: { ...params, ...(cursor === undefined ? {} : { cursor }) },
+          retryable: true,
+        },
+        opts,
+      ),
     );
   }
 
-  async get(callId: string, opts?: RequestOptions): Promise<Call> {
-    return (
-      await this.#http.request<Call>({ method: "GET", path: path(callId), retryable: true }, opts)
-    ).data;
+  get(callId: string, opts?: RequestOptions): Promise<Call> {
+    return this.#http.json<Call>({ method: "GET", path: path(callId), retryable: true }, opts);
   }
 
   end(callId: string, opts?: RequestOptions): Promise<Call> {
@@ -84,12 +79,9 @@ export class Calls {
     return this.#action(callId, "unhold", opts);
   }
 
-  async #action(callId: string, action: string, opts?: RequestOptions): Promise<Call> {
-    const res = await this.#http.request<Call>(
-      { method: "POST", path: `${path(callId)}/${action}`, retryable: true },
-      opts,
-    );
-    return res.data;
+  #action(callId: string, action: string, opts?: RequestOptions): Promise<Call> {
+    const req = { method: "POST", path: `${path(callId)}/${action}`, retryable: true } as const;
+    return this.#http.json<Call>(req, opts);
   }
 }
 

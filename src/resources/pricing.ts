@@ -8,11 +8,8 @@ export class Pricing {
     this.#http = http;
   }
 
-  async getNumberPrice(number: string, opts?: RequestOptions): Promise<NumberPrice> {
-    const res = await this.#http.request<NumberPrice>(
-      { method: "GET", path: `/v1/pricing/numbers/${encodeURIComponent(number)}`, retryable: true },
-      opts,
-    );
-    return res.data;
+  getNumberPrice(number: string, opts?: RequestOptions): Promise<NumberPrice> {
+    const path = `/v1/pricing/numbers/${encodeURIComponent(number)}`;
+    return this.#http.json<NumberPrice>({ method: "GET", path, retryable: true }, opts);
   }
 }

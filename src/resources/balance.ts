@@ -8,12 +8,7 @@ export class BalanceResource {
     this.#http = http;
   }
 
-  async get(opts?: RequestOptions): Promise<Balance> {
-    return (
-      await this.#http.request<Balance>(
-        { method: "GET", path: "/v1/balance", retryable: true },
-        opts,
-      )
-    ).data;
+  get(opts?: RequestOptions): Promise<Balance> {
+    return this.#http.json<Balance>({ method: "GET", path: "/v1/balance", retryable: true }, opts);
   }
 }

@@ -42,6 +42,12 @@ const MAX_BACKOFF_MS = 8000;
 const BASE_BACKOFF_MS = 500;
 const MAX_RETRY_AFTER_MS = 60_000;
 
+/** The outcome of one attempt: a response under 400, or an error and whether to retry it. */
+type Attempt =
+  | { res: HttpResponse<unknown> }
+  | { error: YollaVoiceError; retry: false }
+  | { error: YollaVoiceError; retry: true; retryAfterMs?: number | undefined };
+
 export class HttpClient {
   readonly #apiKey: string;
   readonly #baseUrl: string;
@@ -52,34 +58,30 @@ export class HttpClient {
   constructor(cfg: HttpClientConfig) {
     this.#apiKey = cfg.apiKey;
     this.#baseUrl = cfg.baseUrl.replace(/\/+$/, "");
-    this.#timeoutMs = cfg.timeoutMs;
-    this.#maxRetries = cfg.maxRetries;
+    this.#timeoutMs = checkTimeout(cfg.timeoutMs);
+    this.#maxRetries = checkRetries(cfg.maxRetries);
     this.#fetch = cfg.fetch;
   }
 
+  /** Sends a request and returns the parsed body. */
+  async json<T>(req: HttpRequest, opts?: RequestOptions): Promise<T> {
+    return (await this.request<T>(req, opts)).data;
+  }
+
+  /** Sends a request with retries; throws the typed error of the last attempt. */
   async request<T>(req: HttpRequest, opts: RequestOptions = {}): Promise<HttpResponse<T>> {
-    const maxRetries = req.retryable ? (opts.maxRetries ?? this.#maxRetries) : 0;
-    const timeoutMs = opts.timeoutMs ?? this.#timeoutMs;
+    const maxRetries = checkRetries(opts.maxRetries ?? this.#maxRetries);
+    const timeoutMs = checkTimeout(opts.timeoutMs ?? this.#timeoutMs);
+    const retries = req.retryable ? maxRetries : 0;
     const url = this.#url(req);
     const init = this.#init(req);
 
     for (let attempt = 0; ; attempt++) {
       opts.signal?.throwIfAborted();
-      let error: YollaVoiceError;
-      let retryAfterMs: number | undefined;
-      try {
-        const res = await this.#attempt(url, init, timeoutMs, opts.signal);
-        if (res.status < 400) return res as HttpResponse<T>;
-        error = errorFromResponse(res.status, res.data, res.headers);
-        if (!isRetryableStatus(res.status)) throw error;
-        const retryAfter = parseRetryAfter(res.headers);
-        if (retryAfter !== undefined) retryAfterMs = Math.min(MAX_RETRY_AFTER_MS, retryAfter);
-      } catch (err) {
-        if (!(err instanceof ConnectionError || err instanceof TimeoutError)) throw err;
-        error = err;
-      }
-      if (attempt >= maxRetries) throw error;
-      await sleep(retryAfterMs ?? backoff(attempt), opts.signal);
+      const result = await this.#attempt(url, init, timeoutMs, opts.signal);
+      if ("res" in result) return result.res as HttpResponse<T>;
+      if (!result.retry || attempt >= retries) throw result.error;
+      await sleep(result.retryAfterMs ?? backoff(attempt), opts.signal);
     }
   }
 
@@ -88,19 +90,32 @@ export class HttpClient {
     init: RequestInit,
     timeoutMs: number,
     callerSignal: AbortSignal | undefined,
-  ): Promise<HttpResponse<unknown>> {
+  ): Promise<Attempt> {
     const timeoutSignal = AbortSignal.timeout(timeoutMs);
     const signal = callerSignal ? AbortSignal.any([callerSignal, timeoutSignal]) : timeoutSignal;
+    let res: Response;
+    let data: unknown;
     try {
-      const res = await this.#fetch(url, { ...init, signal });
-      const data = await readBody(res);
-      return { data, status: res.status, headers: res.headers };
+      res = await this.#fetch(url, { ...init, signal });
+      data = await readBody(res);
     } catch (err) {
       if (callerSignal?.aborted) throw callerSignal.reason;
-      if (timeoutSignal.aborted) throw new TimeoutError(`Request timed out after ${timeoutMs} ms`);
-      if (err instanceof YollaVoiceError) throw err;
-      throw new ConnectionError("Connection to the Yolla Voice API failed", { cause: err });
+      if (timeoutSignal.aborted) {
+        return { error: new TimeoutError(`Request timed out after ${timeoutMs} ms`), retry: true };
+      }
+      if (err instanceof YollaVoiceError) return { error: err, retry: false };
+      const error = new ConnectionError("Connection to the Yolla Voice API failed", { cause: err });
+      return { error, retry: true };
     }
+    if (res.status < 400) return { res: { data, status: res.status, headers: res.headers } };
+    const error = errorFromResponse(res.status, data, res.headers);
+    if (!isRetryableStatus(res.status)) return { error, retry: false };
+    const retryAfter = parseRetryAfter(res.headers);
+    return {
+      error,
+      retry: true,
+      retryAfterMs: retryAfter === undefined ? undefined : Math.min(MAX_RETRY_AFTER_MS, retryAfter),
+    };
   }
 
   #url(req: HttpRequest): string {
@@ -126,6 +141,19 @@ export class HttpClient {
     }
     return init;
   }
+}
+
+function checkRetries(n: number): number {
+  if (!Number.isInteger(n) || n < 0)
+    throw new RangeError("maxRetries must be an integer, 0 or more");
+  return n;
+}
+
+function checkTimeout(n: number): number {
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new RangeError("timeoutMs must be a finite number greater than 0");
+  }
+  return n;
 }
 
 function isRetryableStatus(status: number): boolean {

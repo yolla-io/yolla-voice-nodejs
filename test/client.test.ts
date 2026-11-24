@@ -51,5 +51,11 @@ describe("YollaVoice options", () => {
   it("rejects invalid numeric options", () => {
     expect(() => new YollaVoice({ ...base, maxRetries: -1 })).toThrow(RangeError);
     expect(() => new YollaVoice({ ...base, timeoutMs: 0 })).toThrow(RangeError);
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
+      expect(() => new YollaVoice({ ...base, maxRetries: bad })).toThrow(RangeError);
+    }
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => new YollaVoice({ ...base, timeoutMs: bad })).toThrow(RangeError);
+    }
   });
 });
