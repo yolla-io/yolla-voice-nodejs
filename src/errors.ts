@@ -69,7 +69,7 @@ export class InsufficientBalanceError extends YollaVoiceError {
   override name = "InsufficientBalanceError";
 }
 
-/** 403: the operation is not allowed (blocked reseller, user, destination, caller id). */
+/** 403: the operation is not allowed (blocked partner, user, destination, caller id). */
 export class PermissionError extends YollaVoiceError {
   override name = "PermissionError";
 }

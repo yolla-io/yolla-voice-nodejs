@@ -1,14 +1,14 @@
 {
   "name": "@yolla-io/yolla-voice-nodejs",
   "version": "0.1.0",
-  "description": "Node.js server SDK for the Yolla Voice Reseller API",
+  "description": "Node.js server SDK for the Yolla Voice Partner API",
   "keywords": [
     "yolla",
     "voice",
     "calls",
     "voip",
     "sdk",
-    "reseller"
+    "partner"
   ],
   "homepage": "https://github.com/yolla-io/yolla-voice-nodejs#readme",
   "bugs": {
@@ -49,7 +49,7 @@
     "check": "npm run lint && npm run typecheck && npm run test",
     "prepublishOnly": "npm run build",
     "sync-contract": "node scripts/sync-contract.mjs",
-    "gen": "openapi-typescript openapi/reseller-api.yaml --default-non-nullable false -o src/generated/openapi.ts",
+    "gen": "openapi-typescript openapi/partner-api.yaml --default-non-nullable false -o src/generated/openapi.ts",
     "check:gen": "node scripts/check-gen.mjs",
     "check:public": "node scripts/check-public.mjs"
   },

@@ -1,10 +1,10 @@
-# Reseller API contract, source version 0.1.0-draft, commit 5bbe855, synced 2026-11-24. Do not edit; run npm run sync-contract.
+# Partner API contract, source version 0.1.0-draft, commit cac3ca9, synced 2026-11-26. Do not edit; run npm run sync-contract.
 openapi: 3.1.0
 info:
-  title: Yolla Voice Reseller API
+  title: Yolla Voice Partner API
   version: 0.1.0-draft
 servers:
-  - url: https://api.example.com
+  - url: https://platform.yolla.io/api
 tags:
   - name: calls
   - name: account
@@ -272,6 +272,7 @@ paths:
     post:
       tags:
         - client
+      x-internal: true
       operationId: getGateway
       security:
         - callToken: []
@@ -308,6 +309,7 @@ paths:
     post:
       tags:
         - client
+      x-internal: true
       operationId: postIntervalStats
       security:
         - callToken: []
@@ -337,6 +339,7 @@ paths:
     post:
       tags:
         - client
+      x-internal: true
       operationId: postFinalStats
       security:
         - callToken: []
@@ -364,6 +367,7 @@ paths:
     post:
       tags:
         - client
+      x-internal: true
       operationId: postLogs
       security:
         - callToken: []

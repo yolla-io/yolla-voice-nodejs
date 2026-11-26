@@ -1,4 +1,4 @@
-// Writes openapi/reseller-api.yaml from a source contract with prose keys stripped.
+// Writes openapi/partner-api.yaml from a source contract with prose keys stripped.
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -43,14 +43,14 @@ const doc = strip(parse(readFileSync(source, "utf8")));
 if (doc.components?.responses) fillResponses(doc.components.responses);
 const date = new Date().toISOString().slice(0, 10);
 const commit = sourceCommit(source);
-const header = `# Reseller API contract, source version ${doc.info.version}, commit ${commit}, synced ${date}. Do not edit; run npm run sync-contract.\n`;
+const header = `# Partner API contract, source version ${doc.info.version}, commit ${commit}, synced ${date}. Do not edit; run npm run sync-contract.\n`;
 const body = stringify(doc, { lineWidth: 0 });
 if (/[\u0400-\u04FF]/.test(body)) {
   const line = body.split("\n").find((l) => /[\u0400-\u04FF]/.test(l));
   console.error(`Cyrillic text remains in the contract: ${line?.trim()}`);
   process.exit(1);
 }
-writeFileSync(new URL("../openapi/reseller-api.yaml", import.meta.url), header + body);
+writeFileSync(new URL("../openapi/partner-api.yaml", import.meta.url), header + body);
 
 // The last commit that changed the source file, with "+changes" when the file is modified.
 function sourceCommit(file) {

@@ -1,6 +1,6 @@
 # @yolla-io/yolla-voice-nodejs
 
-Node.js server SDK for the Yolla Voice Reseller API: create and manage calls, read the balance and
+Node.js server SDK for the Yolla Voice Partner API: create and manage calls, read the balance and
 number prices, and receive signed webhooks. TypeScript types included, no runtime dependencies.
 
 > Pre-release (0.x). The API contract is still a draft, so minor versions may change the API.
@@ -38,7 +38,7 @@ const yolla = new YollaVoice({ apiKey, baseUrl, timeoutMs: 10_000, maxRetries: 3
 
 | Option          | Environment variable   | Default | Description                                         |
 | --------------- | ---------------------- | ------- | --------------------------------------------------- |
-| `apiKey`        | `YOLLA_API_KEY`        | none    | Reseller API key. Required.                         |
+| `apiKey`        | `YOLLA_API_KEY`        | none    | Partner API key. Required.                          |
 | `baseUrl`       | `YOLLA_BASE_URL`       | none    | API base URL. Required.                             |
 | `webhookSecret` | `YOLLA_WEBHOOK_SECRET` | none    | Signing secret, or an array during rotation.        |
 | `timeoutMs`     |                        | `30000` | Timeout of one attempt.                             |
@@ -111,7 +111,7 @@ All errors extend `YollaVoiceError` and carry `status`, `code` and `requestId`. 
 | `ValidationError`          | 400, 422: malformed request or invalid parameters       |
 | `AuthenticationError`      | 401: missing or invalid API key                         |
 | `InsufficientBalanceError` | 402: not enough balance                                 |
-| `PermissionError`          | 403: blocked reseller, user, destination or caller id   |
+| `PermissionError`          | 403: blocked partner, user, destination or caller id    |
 | `NotFoundError`            | 404: call not found                                     |
 | `ConflictError`            | 409: idempotency conflict or wrong call state           |
 | `RateLimitError`           | 429: rate limit or concurrent calls; has `retryAfterMs` |

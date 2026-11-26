@@ -11,7 +11,7 @@ try {
     "npx",
     [
       "openapi-typescript",
-      "openapi/reseller-api.yaml",
+      "openapi/partner-api.yaml",
       "--default-non-nullable",
       "false",
       "-o",
