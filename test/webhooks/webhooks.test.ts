@@ -10,7 +10,7 @@ const headers = {
   "X-Voice-Signature": testVector.signature,
 };
 const now = () => fixture.timestamp * 1000;
-const clientOpts = { apiKey: "sk_test", baseUrl: "https://api.example.test" };
+const clientOpts = { apiKey: "sk_test" };
 
 afterEach(() => {
   vi.unstubAllEnvs();

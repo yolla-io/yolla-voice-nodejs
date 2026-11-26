@@ -2,34 +2,25 @@ import { inspect } from "node:util";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YollaVoice } from "../src/index.js";
 
-const base = { apiKey: "yk_test_secret", baseUrl: "https://api.example.test" };
+const base = { apiKey: "yk_test_secret" };
 
 afterEach(() => vi.unstubAllEnvs());
 
 describe("YollaVoice options", () => {
   it("requires an API key", () => {
     vi.stubEnv("YOLLA_API_KEY", "");
-    expect(() => new YollaVoice({ baseUrl: base.baseUrl })).toThrow(
+    expect(() => new YollaVoice()).toThrow(
       new Error("Missing API key: pass apiKey or set YOLLA_API_KEY"),
-    );
-  });
-
-  it("requires a base URL", () => {
-    vi.stubEnv("YOLLA_BASE_URL", "");
-    expect(() => new YollaVoice({ apiKey: base.apiKey })).toThrow(
-      new Error("Missing baseUrl: pass baseUrl or set YOLLA_BASE_URL"),
     );
   });
 
   it("falls back to environment variables", () => {
     vi.stubEnv("YOLLA_API_KEY", "yk_test_env");
-    vi.stubEnv("YOLLA_BASE_URL", "https://env.example.test");
     expect(() => new YollaVoice()).not.toThrow();
   });
 
-  it("uses the env base URL when options are omitted", async () => {
+  it("calls the Yolla API at platform.yolla.io", async () => {
     vi.stubEnv("YOLLA_API_KEY", "yk_test_env");
-    vi.stubEnv("YOLLA_BASE_URL", "https://env.example.test");
     const urls: string[] = [];
     const client = new YollaVoice({
       fetch: (async (url: string) => {
@@ -38,7 +29,7 @@ describe("YollaVoice options", () => {
       }) as typeof fetch,
     });
     await client.balance.get();
-    expect(urls).toEqual(["https://env.example.test/v1/balance"]);
+    expect(urls).toEqual(["https://platform.yolla.io/api/v1/balance"]);
   });
 
   it("never exposes the key", () => {

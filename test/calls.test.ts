@@ -9,7 +9,6 @@ function make(...replies: MockReply[]) {
   const m = mockFetch(...replies);
   const client = new YollaVoice({
     apiKey: "yk_test_secret",
-    baseUrl: "https://api.example.test",
     fetch: m.fetch,
     maxRetries: 2,
   });
@@ -25,7 +24,7 @@ describe("calls.create", () => {
     const { client, calls } = make(jsonResponse(201, call));
     const res = await client.calls.create(params);
     expect(res).toEqual({ call, replayed: false });
-    expect(calls[0]?.url).toBe("https://api.example.test/v1/calls");
+    expect(calls[0]?.url).toBe("https://platform.yolla.io/api/v1/calls");
     expect(calls[0]?.init.method).toBe("POST");
     expect(JSON.parse(calls[0]?.init.body as string)).toEqual(params);
     expect(header(calls[0]?.init as RequestInit, "Idempotency-Key")).toMatch(
@@ -65,7 +64,7 @@ describe("calls.list", () => {
   it("builds the query and exposes the page", async () => {
     const { client, calls } = make(jsonResponse(200, { items: [call], nextCursor: "n1" }));
     const page = await client.calls.list({ status: "answered", limit: 10 });
-    expect(calls[0]?.url).toBe("https://api.example.test/v1/calls?status=answered&limit=10");
+    expect(calls[0]?.url).toBe("https://platform.yolla.io/api/v1/calls?status=answered&limit=10");
     expect(page.items).toEqual([call]);
     expect(page.nextCursor).toBe("n1");
     expect(page.hasNextPage()).toBe(true);
@@ -120,7 +119,7 @@ describe("single call operations", () => {
   it("get hits the right path with the id encoded", async () => {
     const { client, calls } = make(jsonResponse(200, call));
     await client.calls.get("a/b c");
-    expect(calls[0]?.url).toBe("https://api.example.test/v1/calls/a%2Fb%20c");
+    expect(calls[0]?.url).toBe("https://platform.yolla.io/api/v1/calls/a%2Fb%20c");
     expect(calls[0]?.init.method).toBe("GET");
   });
 
@@ -137,7 +136,7 @@ describe("single call operations", () => {
       const res = await client.calls[op]("c 1");
       expect(res).toEqual(call);
       expect(calls).toHaveLength(2);
-      expect(calls[1]?.url).toBe(`https://api.example.test/v1/calls/c%201/${suffix}`);
+      expect(calls[1]?.url).toBe(`https://platform.yolla.io/api/v1/calls/c%201/${suffix}`);
       expect(calls[1]?.init.method).toBe("POST");
     });
   }

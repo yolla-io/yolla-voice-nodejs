@@ -17,7 +17,6 @@ describe("options accept undefined values", () => {
   it("YollaVoice options", () => {
     new YollaVoice({
       apiKey: maybe,
-      baseUrl: maybe,
       timeoutMs: maybeNumber,
       maxRetries: maybeNumber,
       fetch: undefined,

@@ -6,11 +6,11 @@ import { Webhooks } from "./webhooks/index.js";
 
 export type { RequestOptions };
 
+const BASE_URL = "https://platform.yolla.io/api";
+
 export interface YollaVoiceOptions {
   /** Defaults to the YOLLA_API_KEY environment variable. */
   apiKey?: string | undefined;
-  /** Defaults to the YOLLA_BASE_URL environment variable. */
-  baseUrl?: string | undefined;
   /** Per-attempt timeout. Default 30000. */
   timeoutMs?: number | undefined;
   /** Retries after a 429, 5xx, network error or timeout. Default 2. */
@@ -30,12 +30,10 @@ export class YollaVoice {
   constructor(opts: YollaVoiceOptions = {}) {
     const apiKey = opts.apiKey || process.env.YOLLA_API_KEY;
     if (!apiKey) throw new Error("Missing API key: pass apiKey or set YOLLA_API_KEY");
-    const baseUrl = opts.baseUrl || process.env.YOLLA_BASE_URL;
-    if (!baseUrl) throw new Error("Missing baseUrl: pass baseUrl or set YOLLA_BASE_URL");
 
     const http = new HttpClient({
       apiKey,
-      baseUrl,
+      baseUrl: BASE_URL,
       timeoutMs: opts.timeoutMs ?? 30_000,
       maxRetries: opts.maxRetries ?? 2,
       fetch: opts.fetch ?? globalThis.fetch,

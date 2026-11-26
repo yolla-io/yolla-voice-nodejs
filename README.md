@@ -18,7 +18,6 @@ import { YollaVoice } from "@yolla-io/yolla-voice-nodejs";
 
 const yolla = new YollaVoice({
   apiKey: process.env.YOLLA_API_KEY,
-  baseUrl: process.env.YOLLA_BASE_URL,
 });
 
 const { call } = await yolla.calls.create({
@@ -33,20 +32,20 @@ console.log(call.id, call.callToken, call.expiresAt);
 ## Configuration
 
 ```ts
-const yolla = new YollaVoice({ apiKey, baseUrl, timeoutMs: 10_000, maxRetries: 3 });
+const yolla = new YollaVoice({ apiKey, timeoutMs: 10_000, maxRetries: 3 });
 ```
 
 | Option          | Environment variable   | Default | Description                                         |
 | --------------- | ---------------------- | ------- | --------------------------------------------------- |
 | `apiKey`        | `YOLLA_API_KEY`        | none    | Partner API key. Required.                          |
-| `baseUrl`       | `YOLLA_BASE_URL`       | none    | API base URL. Required.                             |
 | `webhookSecret` | `YOLLA_WEBHOOK_SECRET` | none    | Signing secret, or an array during rotation.        |
 | `timeoutMs`     |                        | `30000` | Timeout of one attempt.                             |
 | `maxRetries`    |                        | `2`     | Retries after a 429, 5xx, network error or timeout. |
 | `fetch`         |                        | global  | Custom `fetch`, for proxies or tests.               |
 
-The constructor throws when the API key or base URL is missing. The API key never appears in error
-messages, `JSON.stringify` or `util.inspect` output of the client or of any error.
+Requests go to `https://platform.yolla.io/api`. The constructor throws when the API key is missing.
+The API key never appears in error messages, `JSON.stringify` or `util.inspect` output of the client
+or of any error.
 
 Every method takes optional per-call `{ timeoutMs, maxRetries, signal }`:
 

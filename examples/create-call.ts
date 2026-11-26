@@ -2,7 +2,6 @@ import { InsufficientBalanceError, YollaVoice } from "@yolla-io/yolla-voice-node
 
 const yolla = new YollaVoice({
   apiKey: process.env.YOLLA_API_KEY,
-  baseUrl: process.env.YOLLA_BASE_URL,
 });
 
 try {
