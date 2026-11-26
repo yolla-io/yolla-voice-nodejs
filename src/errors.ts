@@ -9,7 +9,7 @@ export type ErrorCode =
   | "invalid_number"
   | "insufficient_balance"
   | "destination_not_allowed"
-  | "reseller_blocked"
+  | "partner_blocked"
   | "caller_blocked"
   | "caller_id_not_allowed"
   | "caller_id_invalid"
