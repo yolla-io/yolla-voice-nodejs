@@ -1,4 +1,4 @@
-# Partner API contract, source version 0.1.0-draft, commit 34a5729, synced 2026-11-27. Do not edit; run npm run sync-contract.
+# Partner API contract, source version 0.1.0-draft, commit 4190d1b, synced 2026-11-27. Do not edit; run npm run sync-contract.
 openapi: 3.1.0
 info:
   title: Yolla Voice Partner API
