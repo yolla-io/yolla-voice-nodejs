@@ -7,5 +7,4 @@ test("VERSION matches package.json", () => {
     version: string;
   };
   expect(VERSION).toBe(pkg.version);
-  expect(VERSION).toBe("0.1.0");
 });

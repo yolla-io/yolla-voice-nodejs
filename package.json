@@ -1,6 +1,6 @@
 {
   "name": "@yolla-io/yolla-voice-nodejs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Node.js server SDK for the Yolla Voice Partner API",
   "keywords": [
     "yolla",
