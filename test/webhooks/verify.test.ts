@@ -61,6 +61,7 @@ describe("verifyWebhook", () => {
       now,
     });
     if (event.type !== "call.completed") throw new Error("wrong type");
+    expect(event.data.call.id).toBe("call_01JDPA0B1C2D3E4F5G6H7J8K9N");
     expect(event.data.call.externalUserId).toBe("user-ü-42");
   });
 

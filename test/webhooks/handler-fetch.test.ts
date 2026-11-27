@@ -4,7 +4,7 @@ import { createWebhookHandler } from "../../src/webhooks/handler.js";
 import { signWebhook } from "../../src/webhooks/sign.js";
 
 const secret = "whsec_test";
-const completed = { id: "evt_1", type: "call.completed", data: { callId: "c1" } };
+const completed = { id: "evt_1", type: "call.completed", data: { call: { id: "c1" } } };
 
 function post(payload: object | string, opts: { secret?: string; method?: string } = {}) {
   const signed = signWebhook(payload, { secret: opts.secret ?? secret });

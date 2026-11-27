@@ -18,7 +18,7 @@ describe("signWebhook", () => {
       type: "call.completed",
       seq: 3,
       createdAt: "2026-11-23T10:15:00.000Z",
-      data: { call: { callId: "call_1", externalUserId: "ü" } },
+      data: { call: { id: "call_1", externalUserId: "ü" } },
     };
     const { body, headers } = signWebhook(payload, { secret: "s3cret" });
     expect(body).toBe(JSON.stringify(payload));

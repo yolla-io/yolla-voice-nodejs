@@ -9,8 +9,8 @@
     },
     {
       "name": "call.completed",
-      "body": "{\"id\":\"evt_01JDPA0B1C2D3E4F5G6H7J8K9M\",\"type\":\"call.completed\",\"seq\":4,\"createdAt\":\"2026-11-23T10:20:00.000Z\",\"data\":{\"call\":{\"callId\":\"call_01JDPA0B1C2D3E4F5G6H7J8K9N\",\"externalUserId\":\"user-ü-42\",\"status\":\"completed\"}}}",
-      "signature": "v1=e0561a974544579b0dee6678311520d9260bb5204224a869525acde784d31185"
+      "body": "{\"id\":\"evt_01JDPA0B1C2D3E4F5G6H7J8K9M\",\"type\":\"call.completed\",\"seq\":4,\"createdAt\":\"2026-11-23T10:20:00.000Z\",\"data\":{\"call\":{\"id\":\"call_01JDPA0B1C2D3E4F5G6H7J8K9N\",\"externalUserId\":\"user-ü-42\",\"status\":\"completed\"}}}",
+      "signature": "v1=5dec3a4d3cb1db013504bce142dcb1ba56d228256d1f88e25597275157b9f1b3"
     }
   ]
 }
