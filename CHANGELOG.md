@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- 5633c40: New webhook event `call.billed`: sent once per call after `call.completed`, when the final billing record is
+  applied. It carries the same `data.call` snapshot, with the final `price` and `billedDuration`.
+
 ## 0.2.0
 
 ### Minor Changes
