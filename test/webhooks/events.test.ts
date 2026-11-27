@@ -6,7 +6,13 @@ const event = (type: string) =>
 
 describe("isKnownWebhookEvent", () => {
   it("is true for the event types of the contract", () => {
-    for (const type of ["call.initiated", "call.completed", "call.quality", "balance.low"]) {
+    for (const type of [
+      "call.initiated",
+      "call.completed",
+      "call.billed",
+      "call.quality",
+      "balance.low",
+    ]) {
       expect(isKnownWebhookEvent(event(type))).toBe(true);
     }
     expect(isKnownWebhookEvent(event("webhook.test"))).toBe(true);

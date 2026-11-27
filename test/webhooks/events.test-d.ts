@@ -40,7 +40,7 @@ describe("webhook event types", () => {
     expectTypeOf<WebhookEventOf<"call.quality">["type"]>().toEqualTypeOf<"call.quality">();
   });
 
-  it("lists the ten known types", () => {
+  it("lists the eleven known types", () => {
     expectTypeOf<WebhookEventType>().toEqualTypeOf<
       | "call.initiated"
       | "call.answered"
@@ -48,6 +48,7 @@ describe("webhook event types", () => {
       | "call.unheld"
       | "call.hold_failed"
       | "call.completed"
+      | "call.billed"
       | "call.expired"
       | "call.quality"
       | "balance.low"

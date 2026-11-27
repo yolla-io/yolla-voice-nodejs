@@ -263,7 +263,10 @@ clock (`toleranceSec`, default 300).
 ### Events
 
 `call.initiated`, `call.answered`, `call.held`, `call.unheld`, `call.hold_failed`, `call.completed`,
-`call.expired`, `call.quality`, `balance.low`, `webhook.test`.
+`call.billed`, `call.expired`, `call.quality`, `balance.low`, `webhook.test`.
+
+`call.billed` is sent once per call, after `call.completed`, when the final billing record is applied. It has the
+same shape as `call.completed` (`data.call`), and its `price` and `billedDuration` are final.
 
 Every event has `id`, `type`, `seq`, `createdAt` and `data`.
 

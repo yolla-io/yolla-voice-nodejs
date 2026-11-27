@@ -9,7 +9,7 @@ export interface WebhookVector {
 export interface WebhookFixture {
   secret: string;
   timestamp: number;
-  vectors: [WebhookVector, WebhookVector];
+  vectors: [WebhookVector, WebhookVector, WebhookVector];
 }
 
 export function loadFixture(): WebhookFixture {

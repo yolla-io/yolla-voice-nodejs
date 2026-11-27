@@ -5,7 +5,7 @@ import { verifyWebhook } from "../../src/webhooks/verify.js";
 import { loadFixture } from "./fixture.js";
 
 const fixture = loadFixture();
-const [testVector, callVector] = fixture.vectors;
+const [testVector, callVector, billedVector] = fixture.vectors;
 const secret = fixture.secret;
 const ts = fixture.timestamp;
 const now = () => ts * 1000;
@@ -44,7 +44,7 @@ describe("verifyWebhook", () => {
   });
 
   it("verifies the same body as string, Buffer and Uint8Array", () => {
-    for (const vector of [testVector, callVector]) {
+    for (const vector of [testVector, callVector, billedVector]) {
       const bytes = Buffer.from(vector.body, "utf8");
       const bodies = [vector.body, bytes, new Uint8Array(bytes)];
       for (const body of bodies) {
@@ -63,6 +63,18 @@ describe("verifyWebhook", () => {
     if (event.type !== "call.completed") throw new Error("wrong type");
     expect(event.data.call.id).toBe("call_01JDPA0B1C2D3E4F5G6H7J8K9N");
     expect(event.data.call.externalUserId).toBe("user-ü-42");
+  });
+
+  it("verifies call.billed and reads the final price", () => {
+    const event = verifyWebhook(billedVector.body, headersFor(billedVector.signature), {
+      secret,
+      now,
+    });
+    if (event.type !== "call.billed") throw new Error("wrong type");
+    expect(event.seq).toBe(5);
+    expect(event.data.call.id).toBe("call_01JDPA0B1C2D3E4F5G6H7J8K9N");
+    expect(event.data.call.price).toEqual({ amount: "0.1220", currency: "USD" });
+    expect(event.data.call.billedDuration).toBe(61);
   });
 
   it("rejects a changed byte in the body", () => {

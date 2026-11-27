@@ -1,4 +1,4 @@
-# Partner API contract, source version 0.1.0-draft, commit fcea32e, synced 2026-11-26. Do not edit; run npm run sync-contract.
+# Partner API contract, source version 0.1.0-draft, commit 34a5729, synced 2026-11-27. Do not edit; run npm run sync-contract.
 openapi: 3.1.0
 info:
   title: Yolla Voice Partner API
@@ -416,6 +416,8 @@ webhooks:
   call.hold_failed:
     $ref: "#/components/pathItems/CallWebhook"
   call.completed:
+    $ref: "#/components/pathItems/CallWebhook"
+  call.billed:
     $ref: "#/components/pathItems/CallWebhook"
   call.expired:
     $ref: "#/components/pathItems/CallWebhook"
@@ -1081,6 +1083,7 @@ components:
                 - call.unheld
                 - call.hold_failed
                 - call.completed
+                - call.billed
                 - call.expired
             data:
               type: object

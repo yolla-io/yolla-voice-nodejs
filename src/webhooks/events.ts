@@ -5,7 +5,7 @@ type EventEnvelope = Schemas["EventEnvelope"];
 
 export type CallWebhookEventType = Schemas["CallEvent"]["type"];
 
-/** Call lifecycle events: `call.initiated` … `call.expired`. */
+/** Call lifecycle events: `call.initiated` … `call.expired`, including `call.billed`. */
 export type CallWebhookEvent = {
   [T in CallWebhookEventType]: Omit<Schemas["CallEvent"], "type"> & { type: T };
 }[CallWebhookEventType];
@@ -50,6 +50,7 @@ const KNOWN_TYPES: Record<WebhookEventType, true> = {
   "call.unheld": true,
   "call.hold_failed": true,
   "call.completed": true,
+  "call.billed": true,
   "call.expired": true,
   "call.quality": true,
   "balance.low": true,

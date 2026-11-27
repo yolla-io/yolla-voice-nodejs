@@ -290,6 +290,22 @@ export interface webhooks {
         patch?: never;
         trace?: never;
     };
+    "call.billed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "call.expired": {
         parameters: {
             query?: never;
@@ -560,7 +576,7 @@ export interface components {
         };
         CallEvent: components["schemas"]["EventEnvelope"] & {
             /** @enum {string} */
-            type: "call.initiated" | "call.answered" | "call.held" | "call.unheld" | "call.hold_failed" | "call.completed" | "call.expired";
+            type: "call.initiated" | "call.answered" | "call.held" | "call.unheld" | "call.hold_failed" | "call.completed" | "call.billed" | "call.expired";
             data: {
                 call: components["schemas"]["Call"];
                 hold?: {
