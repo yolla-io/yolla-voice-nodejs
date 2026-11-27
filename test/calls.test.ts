@@ -3,7 +3,7 @@ import { ConflictError, NotFoundError, YollaVoice } from "../src/index.js";
 import { apiError, jsonResponse, type MockReply, mockFetch } from "./helpers/mock-fetch.js";
 
 const call = { id: "c1", status: "answered" };
-const params = { externalUserId: "u1", destination: "+4915112345678" } as never;
+const params = { externalUserId: "u1", destination: "4915112345678" } as never;
 
 function make(...replies: MockReply[]) {
   const m = mockFetch(...replies);

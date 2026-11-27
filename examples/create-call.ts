@@ -6,7 +6,7 @@ const yolla = new YollaVoice({
 
 try {
   const { call, replayed } = await yolla.calls.create({
-    to: "+14155550100",
+    to: "14155550100",
     externalUserId: "user-42",
     customParams: { orderId: "A-1001" },
   });

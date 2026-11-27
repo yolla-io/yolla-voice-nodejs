@@ -75,14 +75,14 @@ describe("request building", () => {
     await client(m.fetch).request({
       method: "POST",
       path: "/v1/calls",
-      body: { to: "+4915112345678" },
+      body: { to: "4915112345678" },
       headers: { "Idempotency-Key": "key-1" },
       retryable: true,
     });
     const headers = new Headers(m.calls[0]?.init.headers);
     expect(headers.get("content-type")).toBe("application/json");
     expect(headers.get("idempotency-key")).toBe("key-1");
-    expect(m.calls[0]?.init.body).toBe('{"to":"+4915112345678"}');
+    expect(m.calls[0]?.init.body).toBe('{"to":"4915112345678"}');
   });
 
   test.each([BASE, `${BASE}/`])("joins baseUrl %s with the path", async (baseUrl) => {
@@ -102,11 +102,11 @@ describe("request building", () => {
     const m = mockFetch(jsonResponse(200, {}));
     await client(m.fetch).request({
       method: "GET",
-      path: `/v1/pricing/${encodeURIComponent("+4915112345678")}`,
+      path: `/v1/pricing/${encodeURIComponent("a/b c")}`,
       query: { limit: 10, cursor: undefined, status: "completed" },
       retryable: true,
     });
-    expect(m.calls[0]?.url).toBe(`${BASE}/v1/pricing/%2B4915112345678?limit=10&status=completed`);
+    expect(m.calls[0]?.url).toBe(`${BASE}/v1/pricing/a%2Fb%20c?limit=10&status=completed`);
   });
 
   test("an empty or non-JSON body gives undefined data", async () => {

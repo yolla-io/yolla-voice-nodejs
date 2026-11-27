@@ -21,7 +21,7 @@ const yolla = new YollaVoice({
 });
 
 const { call } = await yolla.calls.create({
-  to: "+14155550100",
+  to: "14155550100",
   externalUserId: "user-42",
 });
 
@@ -59,8 +59,8 @@ await yolla.balance.get({ signal: AbortSignal.timeout(5_000), maxRetries: 0 });
 // Create. The result says whether the call already existed for this idempotency key.
 const { call, replayed } = await yolla.calls.create(
   {
-    to: "+14155550100",
-    from: "+14155550199", // optional caller id
+    to: "14155550100",
+    from: "14155550199", // optional caller id
     externalUserId: "user-42",
     customParams: { orderId: "A-1001" },
     maxDuration: 600, // seconds, optional
@@ -75,8 +75,10 @@ const ended = await yolla.calls.end(call.id);
 
 // Balance and prices
 const balance = await yolla.balance.get(); // { billingMode, balance, creditLimit, available }
-const price = await yolla.pricing.getNumberPrice("+14155550100"); // { number, country, rate }
+const price = await yolla.pricing.getNumberPrice("14155550100"); // { number, country, rate }
 ```
+
+Phone numbers are digits only, without a leading `+`. A number with `+` is rejected with a `ValidationError`.
 
 ## Pagination
 
